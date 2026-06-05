@@ -8,8 +8,9 @@ __pycache__/
 .ruff_cache/
 htmlcov/
 
-# Secrets
+# Secrets (шаблоны: .env.example, .env.docker.example)
 .env
+.env.docker
 
 # Local runtime (not source)
 data/app.db

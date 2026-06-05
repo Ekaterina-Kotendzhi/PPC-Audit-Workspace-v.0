@@ -9,5 +9,7 @@ services:
       - ./app/uploads:/app/app/uploads
       - ./app/exports:/app/app/exports
     env_file:
-      - .env.docker
+      - .env.docker.example
+      - path: .env.docker
+        required: false
     restart: unless-stopped

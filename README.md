@@ -101,9 +101,9 @@ docker compose run --rm app python -m pytest tests/ -q
 | Файл | Назначение |
 |------|------------|
 | `.env.example` | шаблон переменных (ключи пустые) |
-| `.env.docker` | **демо для Docker** (`PPC_FORCE_DEMO_AI=true`, без ключей) |
+| `.env.docker.example` | **демо для Docker** (`PPC_FORCE_DEMO_AI=true`, без ключей) |
 
-**Не коммитить** локальный `.env` / `.env.docker` с реальными ключами API.
+**Не коммитить** `.env` и `.env.docker` с реальными ключами API (оба в `.gitignore`). Для ключей локально: `copy .env.docker.example .env.docker`.
 
 ---
 
@@ -115,7 +115,7 @@ docker compose run --rm app python -m pytest tests/ -q
 |------------|--------------|------------|
 | `DATABASE_URL` | `sqlite:///data/app.db` | SQLite |
 | `LOG_LEVEL` | `INFO` | Логи приложения и uvicorn (`DEBUG` для отладки) |
-| `PPC_FORCE_DEMO_AI` | `false` / `true` в `.env.docker` | Демо без внешнего API |
+| `PPC_FORCE_DEMO_AI` | `false` / `true` в `.env.docker.example` | Демо без внешнего API |
 | `ANTHROPIC_API_KEY` | пусто | Ключ ProxyAPI / Anthropic |
 | `OPENAI_API_KEY` | пусто | Ключ OpenAI fallback / embeddings |
 | `AI_ANALYSIS_MAX_TOKENS` | `8192` | Лимит токенов ответа анализа |
@@ -279,7 +279,7 @@ Invoke-WebRequest -Uri "http://localhost:8000/api/audits/1/export/pdf" -OutFile 
 |------|------------|
 | `Dockerfile` | multi-stage: Node + Python 3.12 + Playwright + Tesseract |
 | `docker-compose.yml` | сервис `app`, порт 8000, volumes `data/`, `uploads/`, `exports/` |
-| `.env.docker` | демо без ключей |
+| `.env.docker.example` | демо без ключей (опционально `.env.docker` локально) |
 | `scripts/docker-entrypoint.sh` | uvicorn с `LOG_LEVEL` |
 
 ```powershell
