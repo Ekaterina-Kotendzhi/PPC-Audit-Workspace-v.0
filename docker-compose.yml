@@ -1,0 +1,13 @@
+services:
+  app:
+    build: .
+    container_name: ppc_audit_workspace
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./app/uploads:/app/app/uploads
+      - ./app/exports:/app/app/exports
+    env_file:
+      - .env.docker
+    restart: unless-stopped
