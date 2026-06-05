@@ -103,6 +103,7 @@ from app.services.audit_workflow_service import build_audit_workflow_context
 from app.services.ai_model_service import default_model_id, validate_model_id
 from app.services.model_router import ModelRouter
 from app.services.export_service import generate_html_report
+from app.services.pdf_service import PdfExportError, generate_pdf_report
 from app.services.file_service import log_audit_action, material_file_download_url
 from app.services.direct_slice_service import build_direct_analytics
 from app.services.direct_health_explain_service import explain_direct_health
