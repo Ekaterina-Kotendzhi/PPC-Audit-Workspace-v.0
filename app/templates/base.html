@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PPC Audit Workspace{% endblock %}</title>
+    <link rel="icon" href="/favicon.ico" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/tokens.css?v={{ static_build }}">
+    <link rel="stylesheet" href="/static/css/style.css?v={{ static_build }}">
+    <link rel="stylesheet" href="/static/css/theme.css?v={{ static_build }}">
+    <link rel="stylesheet" href="/static/css/report-findings-theme.css?v={{ static_build }}">
+    <link rel="stylesheet" href="/static/css/direct-data-theme.css?v={{ static_build }}">
+    <link rel="stylesheet" href="/static/css/chat-workflow-theme.css?v={{ static_build }}">
+    <link rel="stylesheet" href="/static/css/sources-tab-theme.css?v={{ static_build }}">
+    {% block extra_head %}{% endblock %}
+    <script src="/static/vendor/chart.umd.min.js?v={{ static_build }}"></script>
+    <script src="/static/vendor/mermaid.min.js?v={{ static_build }}"></script>
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+</head>
+<body data-ui-build="{{ static_build }}">
+    <!-- Навигация -->
+    <nav class="navbar">
+        <div class="logo">📊 PPC Audit Workspace</div>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <ul class="nav-links">
+                <li><a href="/" class="{% if request.url.path == '/' %}active{% endif %}">Аудиты</a></li>
+            </ul>
+            <details class="nav-tools-menu">
+                <summary class="nav-tools-summary">Ещё</summary>
+                <div class="nav-tools-popover">
+                    <a href="/audit-runs" class="{% if request.url.path == '/audit-runs' %}active{% endif %}">История запусков</a>
+                    <a href="/ops-health" class="{% if request.url.path == '/ops-health' %}active{% endif %}">Здоровье</a>
+                </div>
+            </details>
+            <div id="authControls" class="auth-controls" style="display:none;">
+                <span id="authUserMini" class="auth-user-mini"></span>
+                <button id="btnAuthLogin" type="button" class="btn btn-outline btn-sm" onclick="openAuthLoginModal()">Войти</button>
+                <button id="btnAuthLogout" type="button" class="btn btn-outline btn-sm" style="display:none;" onclick="logoutAuth()">Выйти</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Контейнер оповещений -->
+    <div id="alertContainer" class="container" aria-live="polite" aria-relevant="additions"></div>
+
+    <!-- Загрузчик -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loader loader-dark"></div>
+        <p>Выполняется...</p>
+    </div>
+
+    <!-- Основной контент -->
+    {% block content %}{% endblock %}
+
+    <div id="authLoginModal" class="modal-overlay">
+        <div class="modal" style="max-width:420px;">
+            <div class="modal-header">
+                <h3>Вход</h3>
+                <button class="modal-close" onclick="closeModal('authLoginModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="muted" style="margin-bottom:10px;">Для локальной установки задайте учётные данные в <code>.env</code> (<code>AUTH_USERS</code>).</p>
+                <div class="form-group">
+                    <label>Логин</label>
+                    <input id="authLoginUsername" class="form-control" type="text" autocomplete="username" placeholder="admin">
+                </div>
+                <div class="form-group">
+                    <label>Пароль</label>
+                    <input id="authLoginPassword" class="form-control" type="password" autocomplete="current-password" placeholder="••••••">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('authLoginModal')">Отмена</button>
+                <button id="btnAuthDevFill" type="button" class="btn btn-outline" style="display:none;" onclick="fillDevAuthCredentials()">Тестовый логин</button>
+                <button class="btn btn-primary" onclick="submitAuthLogin()">Войти</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="uxConfirmModal" class="modal-overlay">
+        <div class="modal" style="max-width:520px;">
+            <div class="modal-header">
+                <h3 id="uxConfirmTitle">Подтвердите действие</h3>
+                <button id="uxConfirmCloseBtn" class="modal-close" type="button">×</button>
+            </div>
+            <div class="modal-body">
+                <p id="uxConfirmMessage" class="muted" style="white-space: pre-line;">Вы уверены?</p>
+            </div>
+            <div class="modal-footer">
+                <button id="uxConfirmCancelBtn" class="btn btn-outline" type="button">Отмена</button>
+                <button id="uxConfirmOkBtn" class="btn btn-danger" type="button">Подтвердить</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="uxPromptModal" class="modal-overlay">
+        <div class="modal" style="max-width:620px;">
+            <div class="modal-header">
+                <h3 id="uxPromptTitle">Введите комментарий</h3>
+                <button id="uxPromptCloseBtn" class="modal-close" type="button">×</button>
+            </div>
+            <div class="modal-body">
+                <p id="uxPromptMessage" class="muted" style="margin-bottom:8px;"></p>
+                <textarea id="uxPromptInput" class="form-control" rows="4" placeholder="Введите текст..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="uxPromptCancelBtn" class="btn btn-outline" type="button">Отмена</button>
+                <button id="uxPromptOkBtn" class="btn btn-primary" type="button">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подвал -->
+    <div class="footer">
+        <p>PPC Audit Workspace MVP v{{ app_version }} · UI {{ static_build }} | © 2026</p>
+    </div>
+
+    <script src="/static/js/app.js?v={{ static_build }}"></script>
+</body>
+</html>

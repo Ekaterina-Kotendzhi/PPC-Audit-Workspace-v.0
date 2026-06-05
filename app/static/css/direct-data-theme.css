@@ -1,0 +1,236 @@
+/**
+ * Директ + data-flow (вкладка «Данные») — единая тема PPC Audit
+ */
+
+/* —— KPI strip & delta tags —— */
+.direct-kpi-strip {
+    background: var(--direct-panel-bg);
+    border: 1px solid var(--direct-panel-border);
+    border-radius: var(--radius-sm);
+}
+.direct-kpi-label {
+    color: var(--text-muted);
+}
+.direct-kpi-strip strong {
+    color: var(--text-main);
+}
+.direct-mom-details {
+    border-top-color: var(--line);
+}
+.delta-tag {
+    background: var(--surface);
+    border-color: var(--line);
+}
+.delta-tag--good {
+    border-left-color: var(--delta-good-border);
+    color: var(--delta-good-text);
+}
+.delta-tag--bad {
+    border-left-color: var(--delta-bad-border);
+    color: var(--delta-bad-text);
+}
+.delta-tag--warn {
+    border-left-color: var(--delta-warn-border);
+    color: var(--delta-warn-text);
+}
+.delta-tag--neutral {
+    border-left-color: var(--delta-neutral-border);
+    color: var(--delta-neutral-text);
+}
+.direct-mom-up {
+    color: var(--success-text);
+}
+.direct-mom-down {
+    color: var(--danger-text);
+}
+
+/* —— Steps & sections —— */
+.direct-steps-flow-num {
+    background: var(--direct-steps-num-bg);
+    color: var(--direct-steps-num-text);
+}
+.direct-section-details {
+    border-color: var(--line);
+    background: var(--surface-soft);
+    border-radius: var(--radius-sm);
+}
+.direct-steps-card {
+    border-color: var(--direct-card-info-border);
+    background: var(--direct-card-info-bg);
+    border-radius: var(--radius-sm);
+}
+.direct-steps-card--ok {
+    border-color: var(--direct-card-ok-border);
+    background: var(--direct-card-ok-bg);
+}
+.direct-steps-card--warn {
+    border-color: var(--direct-card-warn-border);
+    background: var(--direct-card-warn-bg);
+}
+.direct-ai-enrichment-panel {
+    border-color: var(--direct-card-info-border);
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+}
+.direct-ai-enrichment-panel.direct-ai-enrichment--ok {
+    border-color: var(--direct-card-ok-border);
+    background: var(--direct-card-ok-bg);
+}
+.direct-ai-enrichment-panel.direct-ai-enrichment--partial {
+    border-color: var(--direct-card-partial-border);
+    background: var(--direct-card-partial-bg);
+}
+.direct-ai-enrichment-panel.direct-ai-enrichment--warn {
+    border-color: var(--direct-card-danger-border);
+    background: var(--direct-card-danger-bg);
+}
+
+/* —— Health / zones / risks —— */
+.direct-health-block,
+.direct-risks-panel,
+.report-dynamics-lead,
+.health-kpi-strip-card {
+    border-color: var(--direct-panel-border);
+    background: var(--direct-panel-bg);
+    border-radius: var(--radius-sm);
+}
+.direct-health-zone-row {
+    background: var(--direct-zone-bg);
+    border-color: var(--direct-zone-border);
+}
+.direct-health-zone-name {
+    color: var(--direct-zone-title);
+}
+.direct-health-zone-score {
+    color: var(--direct-zone-meta);
+}
+.direct-health-zone-progress {
+    background: var(--direct-zone-track);
+}
+.direct-health-explain-collapsible p {
+    color: var(--text-secondary);
+}
+.direct-health-link-ok {
+    color: var(--success-text);
+}
+.direct-health-link-warn {
+    color: var(--warning-text);
+}
+.direct-risk-row {
+    border-top-color: var(--line-soft);
+}
+.finding-item--enrichment-stub {
+    border-left-color: var(--direct-enrichment-stub);
+}
+.finding-item--ai-interp {
+    border-left-color: var(--direct-ai-interp);
+}
+.finding-item--missing-enrichment {
+    border-left-color: var(--direct-missing-enrichment);
+    background: var(--danger-soft);
+}
+.pre-pdf-item.pre-pdf-warn {
+    border-left-color: var(--warning);
+    background: var(--warning-soft);
+}
+
+.direct-health-rule-sev--critical {
+    background: var(--sev-critical-bg);
+    color: var(--sev-critical-text);
+}
+.direct-health-rule-sev--high {
+    background: var(--sev-high-bg);
+    color: var(--sev-high-text);
+}
+.direct-health-rule-sev--medium {
+    background: var(--sev-medium-bg);
+    color: var(--sev-medium-text);
+}
+.direct-health-rule-sev--low {
+    background: var(--sev-low-bg);
+    color: var(--sev-low-text);
+}
+
+/* —— Data-flow (шаги 1→2→3) —— */
+.data-flow {
+    background: var(--data-flow-track);
+    border-radius: var(--radius-md);
+}
+.data-flow-btn {
+    font-family: var(--font-sans);
+    border-radius: var(--radius-sm);
+}
+.data-flow-btn--tab.is-active {
+    background: var(--surface);
+    color: var(--primary-strong);
+    border-color: color-mix(in srgb, var(--primary) 35%, transparent);
+}
+.data-flow-btn--step1.is-active {
+    background: var(--flow-step1-grad);
+    color: var(--on-primary);
+}
+.data-flow-btn--step2.is-active {
+    background: var(--flow-step2-grad);
+    color: var(--on-primary);
+}
+.data-flow-btn--step3 {
+    color: var(--flow-step3-text);
+}
+.data-flow-btn--step3.data-flow-btn--ready {
+    background: var(--flow-step3-ready-grad);
+    color: var(--on-primary);
+}
+.data-flow-btn--step3.data-flow-btn--done {
+    background: var(--flow-step3-done-grad);
+    color: var(--primary-strong);
+}
+.data-flow-btn--done .data-flow-num {
+    background: var(--success);
+    color: var(--on-primary);
+}
+.data-flow-btn--step3 .data-flow-num {
+    background: color-mix(in srgb, var(--success) 22%, transparent);
+    color: var(--flow-step3-text);
+}
+.data-flow-btn--step3.data-flow-btn--ready .data-flow-num {
+    background: color-mix(in srgb, var(--on-primary) 35%, transparent);
+    color: var(--on-primary);
+}
+.data-flow--s2-done .data-flow-btn--step2:not(.is-active) {
+    color: var(--flow-s2-done-text);
+}
+.data-subtab-btn {
+    background: var(--surface);
+}
+.data-subtab-btn.is-active {
+    color: var(--on-primary);
+}
+
+/* —— Метрики / сводка «сейчас» —— */
+.data-now-warn {
+    color: var(--warning-text);
+}
+.metrics-period-tr--clickable:hover {
+    background: var(--metrics-row-hover);
+}
+.metrics-period-tr--active {
+    background: var(--metrics-row-active);
+}
+.direct-collapsible {
+    background: var(--surface-soft);
+    border-radius: var(--radius-sm);
+}
+.material-registry-row:hover {
+    background: var(--table-row-hover);
+}
+.material-registry-row--review {
+    background: var(--warning-soft);
+}
+
+/* —— SVG charts (контейнер) —— */
+.comparison-svg-value-label {
+    fill: var(--text-main);
+}
+.direct-dynamics-card .chart-wrapper svg text {
+    font-family: var(--font-sans);
+}

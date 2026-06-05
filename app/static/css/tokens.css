@@ -1,0 +1,252 @@
+/**
+ * PPC Audit Workspace — design tokens (единый источник цветов, типографики, отступов).
+ * Подключается первым в base.html; остальные CSS только ссылаются на var(--*).
+ */
+:root {
+    /* —— Brand & surfaces —— */
+    --brand: #1b3f74;
+    --brand-light: #2f5aa8;
+    --brand-mid: #3d6bb5;
+    --brand-soft: #eef3f9;
+    --brand-border: #c5d4e8;
+    --brand-grad-start: #1b3f74;
+    --brand-grad-end: #2f5aa8;
+    --brand-gradient-alt-end: #5c95de;
+
+    --bg: #f4f7fc;
+    --surface: #ffffff;
+    --surface-soft: #f8fafd;
+    --surface-raised: #fbfcff;
+
+    /* —— Text —— */
+    --text-main: #172b4d;
+    --text-secondary: #475569;
+    --text-muted: #5f6b7a;
+    --text-faint: #94a3b8;
+    --text: var(--text-main);
+    --muted: var(--text-muted);
+
+    /* —— Lines —— */
+    --line: #e4e9f2;
+    --line-soft: #edf2f7;
+    --line-strong: #d5ddea;
+
+    /* —— Interactive (primary actions) —— */
+    --primary: var(--brand-light);
+    --primary-strong: #254a8d;
+    --primary-soft: var(--brand-soft);
+    --primary-border: var(--brand-border);
+    --primary-hover: var(--primary-strong);
+    --focus-ring: 0 0 0 3px rgba(47, 90, 168, 0.18);
+
+    /* —— Semantic —— */
+    --success: #1f8f5f;
+    --success-strong: #15803d;
+    --success-soft: #e9f9f1;
+    --success-text: #0f6a43;
+
+    --warning: #b45309;
+    --warning-strong: #c67a0a;
+    --warning-soft: #fff8ea;
+    --warning-text: #7d4b00;
+
+    --danger: #c24141;
+    --danger-strong: #a93333;
+    --danger-soft: #fef0f0;
+    --danger-text: #8f2323;
+
+    --info-soft: #ecf3ff;
+    --info-text: #294d8d;
+
+    /* —— Accent borders (banners, alerts) —— */
+    --accent-info-border: #c7d7fe;
+    --accent-danger-border: #fecdca;
+    --accent-warning-border: #f5c451;
+    --accent-soft-blue: #eef4ff;
+    --accent-soft-indigo: #eef2ff;
+    --accent-soft-slate: #e9eff8;
+    --accent-soft-chat: #eaf1ff;
+    --accent-soft-chat-border: #dbe7ff;
+    --accent-warn-strong: #d97706;
+    --accent-danger-strong: #dc2626;
+    --accent-success-strong: #16a34a;
+
+    /* —— Material / source card accents (вкладка «Источники») —— */
+    --accent-doc: #b45309;
+    --accent-media: var(--primary);
+    --accent-note: #0f766e;
+    --accent-audio: var(--primary);
+    --accent-neutral: var(--text-muted);
+
+    /* —— Inverse (navbar, dark overlays) —— */
+    --ink-inverse: #e5e7eb;
+    --bg-inverse: #111827;
+
+    /* —— Typography —— */
+    --font-sans: 'IBM Plex Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', Consolas, 'Courier New', monospace;
+
+    --text-xs: 11px;
+    --text-sm: 12px;
+    --text-base: 14px;
+    --text-md: 15px;
+    --text-lg: 17px;
+    --text-xl: 20px;
+    --text-2xl: 28px;
+
+    --font-normal: 400;
+    --font-medium: 500;
+    --font-semibold: 600;
+    --font-bold: 700;
+
+    --leading-tight: 1.25;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.6;
+
+    /* —— Radius & shadow —— */
+    --radius-xs: 6px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-pill: 999px;
+
+    --shadow-sm: 0 1px 3px rgba(17, 24, 39, 0.06);
+    --shadow-md: 0 8px 24px rgba(17, 24, 39, 0.08);
+    --shadow-primary: 0 6px 14px rgba(47, 90, 168, 0.22);
+
+    /* —— Buttons —— */
+    --btn-height: 40px;
+    --btn-height-sm: 32px;
+    --btn-padding-x: 18px;
+    --btn-padding-x-sm: 12px;
+    --btn-font-size: var(--text-base);
+    --btn-font-size-sm: var(--text-sm);
+    --btn-font-weight: var(--font-semibold);
+    --btn-radius: var(--radius-sm);
+
+    /* —— Семантика «Отчёт» / «Выводы» —— */
+    --on-primary: #ffffff;
+    --surface-muted: var(--surface-soft);
+    --border: var(--line);
+    --accent: var(--primary);
+    --table-row-hover: var(--primary-soft);
+    --table-label: var(--text-main);
+    --priority-medium: var(--accent-warning-border);
+    --queue-act: var(--brand);
+    --queue-urgent: var(--danger);
+    --queue-later: var(--accent-warning-border);
+    --queue-report: var(--success-strong);
+    --confirmed-accent: var(--success-strong);
+    --chip-act-bg: var(--primary-soft);
+    --chip-act-text: var(--info-text);
+    --chip-act-border: var(--primary-border);
+    --chip-urgent-bg: var(--danger-soft);
+    --chip-urgent-text: var(--danger-text);
+    --chip-urgent-border: var(--accent-danger-border);
+    --chip-later-bg: var(--surface-soft);
+    --chip-later-text: var(--text-muted);
+    --chip-data-bg: var(--warning-soft);
+    --chip-data-text: var(--warning-text);
+    --chip-data-border: var(--accent-warning-border);
+    --chip-report-bg: var(--success-soft);
+    --chip-report-text: var(--success-text);
+    --chip-report-border: #d4e6da;
+    --reject-muted: var(--text-muted);
+    --reject-hover: var(--danger-text);
+    --link-action: var(--brand);
+    --link-action-hover: var(--primary-strong);
+    --needs-review-accent: var(--accent-warning-border);
+    --legacy-bootstrap-info: var(--primary);
+
+    /* —— Директ / графики / data-flow —— */
+    --chart-line: var(--primary);
+    --chart-grid: color-mix(in srgb, var(--text-main) 18%, transparent);
+    --chart-axis: var(--text-faint);
+    --direct-panel-bg: var(--primary-soft);
+    --direct-panel-border: var(--primary-border);
+    --direct-surface-alt: var(--surface-raised);
+    --delta-good-border: var(--success-strong);
+    --delta-good-text: var(--success-text);
+    --delta-bad-border: var(--danger-strong);
+    --delta-bad-text: var(--danger-text);
+    --delta-warn-border: var(--warning-strong);
+    --delta-warn-text: var(--warning-text);
+    --delta-neutral-border: var(--text-faint);
+    --delta-neutral-text: var(--text-secondary);
+    --direct-steps-num-bg: var(--accent-soft-blue);
+    --direct-steps-num-text: var(--info-text);
+    --direct-card-ok-border: color-mix(in srgb, var(--success) 45%, var(--line));
+    --direct-card-ok-bg: var(--success-soft);
+    --direct-card-warn-border: color-mix(in srgb, var(--warning) 40%, var(--line));
+    --direct-card-warn-bg: var(--warning-soft);
+    --direct-card-partial-border: var(--accent-warning-border);
+    --direct-card-partial-bg: var(--warning-soft);
+    --direct-card-danger-border: var(--accent-danger-border);
+    --direct-card-danger-bg: var(--danger-soft);
+    --direct-zone-bg: var(--primary-soft);
+    --direct-zone-border: var(--direct-panel-border);
+    --direct-zone-track: var(--accent-soft-slate);
+    --direct-zone-title: var(--text-main);
+    --direct-zone-meta: var(--text-muted);
+    --direct-enrichment-stub: var(--warning);
+    --direct-ai-interp: var(--success-strong);
+    --direct-missing-enrichment: var(--danger);
+    --sev-critical-bg: var(--danger-soft);
+    --sev-critical-text: var(--danger-text);
+    --sev-high-bg: var(--warning-soft);
+    --sev-high-text: var(--warning-text);
+    --sev-medium-bg: #fef9c3;
+    --sev-medium-text: var(--warning-text);
+    --sev-low-bg: var(--line-soft);
+    --sev-low-text: var(--text-secondary);
+    --data-flow-track: linear-gradient(
+        105deg,
+        var(--accent-soft-blue) 0%,
+        color-mix(in srgb, var(--primary-soft) 85%, var(--accent-soft-blue)) 38%,
+        color-mix(in srgb, var(--success-soft) 80%, white) 72%,
+        var(--success-soft) 100%
+    );
+    --flow-step1-grad: linear-gradient(135deg, var(--brand-mid) 0%, var(--primary) 100%);
+    --flow-step2-grad: linear-gradient(135deg, var(--brand-gradient-alt-end) 0%, var(--brand-mid) 100%);
+    --flow-step3-ready-grad: linear-gradient(135deg, #3dbf8a 0%, var(--success) 100%);
+    --flow-step3-done-grad: linear-gradient(135deg, var(--surface) 0%, var(--success-soft) 100%);
+    --flow-step3-text: var(--success-text);
+    --flow-s2-done-text: var(--info-text);
+    --metrics-row-hover: var(--primary-soft);
+    --metrics-row-active: var(--accent-soft-blue);
+
+    /* —— Guided / command bar / чат —— */
+    --guided-step3-bg: color-mix(in srgb, var(--success-soft) 88%, white);
+    --guided-review-border: var(--warning-strong);
+    --guided-review-bg: var(--warning-soft);
+    --guided-review-badge-text: var(--warning-text);
+    --guided-review-badge-bg: color-mix(in srgb, var(--warning-soft) 55%, var(--accent-warning-border));
+    --guided-badge-warn-bg: color-mix(in srgb, var(--warning-soft) 70%, white);
+    --guided-badge-info-bg: var(--accent-soft-blue);
+    --guided-badge-success-bg: color-mix(in srgb, var(--success-soft) 75%, white);
+    --stale-bar-border: var(--accent-warning-border);
+    --stale-bar-bg: var(--warning-soft);
+    --chat-client-border: color-mix(in srgb, var(--success) 35%, var(--line));
+    --chat-client-bg: var(--success-soft);
+    --chat-why-bg: var(--accent-soft-slate);
+    --chat-pdf-link: var(--brand);
+    --running-bar-border: var(--accent-info-border);
+
+    /* —— Aliases для legacy / audits-list —— */
+    --audit-brand: var(--brand);
+    --audit-interactive: var(--primary);
+    --audit-primary: var(--primary);
+    --audit-primary-hover: var(--primary-strong);
+    --audit-primary-soft: var(--primary-soft);
+    --audit-primary-border: var(--primary-border);
+    --audit-success: var(--success-strong);
+    --audit-success-soft: var(--success-soft);
+    --audit-warn: var(--warning);
+    --audit-warn-soft: var(--warning-soft);
+    --audit-font-head: var(--text-xs);
+    --audit-font-chip: var(--text-xs);
+    --audit-font-meta: var(--text-sm);
+    --audit-font-cell: 13px;
+    --audit-font-title: var(--text-base);
+    --audit-row-content-h: 64px;
+}

@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Аудиты — PPC Audit Workspace{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="/static/css/audits-list.css?v={{ static_build }}">
+{% endblock %}
+
+{% block content %}
+<div class="container audits-page">
+    <div class="page-header audits-header">
+        <div>
+            <h1>📋 Аудиты</h1>
+            <p id="auditsListHint" class="muted audits-header-subtitle" style="margin:6px 0 0;display:none;"></p>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <span id="userIdentityIndexBadge" class="user-identity-badge" style="display:none;"></span>
+            <button type="button" class="btn btn-primary btn-new-audit" onclick="openModal('createAuditModal')">+ Новый аудит</button>
+        </div>
+    </div>
+
+    <div id="auditsListFilter" class="audits-filter-bar" role="tablist" aria-label="Фильтр списка аудитов" style="display:none;">
+        <div class="audits-filter-segmented">
+            <button type="button" id="auditsFilterAll" class="audits-filter-tab" role="tab" aria-selected="true" aria-controls="auditsListPanel" onclick="setAuditsListFilter('all')">Все <span id="auditsFilterAllCount" class="audits-filter-count">0</span></button>
+            <button type="button" id="auditsFilterDrafts" class="audits-filter-tab" role="tab" aria-selected="false" aria-controls="auditsListPanel" onclick="setAuditsListFilter('drafts')">Черновики <span id="auditsFilterDraftsCount" class="audits-filter-count">0</span></button>
+            <button type="button" id="auditsFilterReview" class="audits-filter-tab" role="tab" aria-selected="false" aria-controls="auditsListPanel" onclick="setAuditsListFilter('review')">На проверке <span id="auditsFilterReviewCount" class="audits-filter-count">0</span></button>
+            <button type="button" id="auditsFilterReady" class="audits-filter-tab" role="tab" aria-selected="false" aria-controls="auditsListPanel" onclick="setAuditsListFilter('ready')">Готовы <span id="auditsFilterReadyCount" class="audits-filter-count">0</span></button>
+            <button type="button" id="auditsFilterArchive" class="audits-filter-tab" role="tab" aria-selected="false" aria-controls="auditsListPanel" onclick="setAuditsListFilter('archive')">Архив <span id="auditsFilterArchiveCount" class="audits-filter-count">0</span></button>
+        </div>
+    </div>
+
+    <div id="auditsListToolbar" class="audits-list-toolbar audits-toolbar-panel" style="display:none;">
+        <div class="audits-toolbar-row audits-toolbar-row-primary">
+            <input type="search" id="auditsSearchInput" class="form-control audits-search-input" placeholder="Поиск по клиенту, нише, цели или ID…" autocomplete="off" aria-label="Поиск аудитов">
+            <label class="audits-status-field">
+                <span class="audits-field-label">Статус</span>
+                <select id="auditsStatusFilter" class="form-control audits-status-select" aria-label="Фильтр по статусу аудита">
+                    <option value="">Все</option>
+                    <option value="draft">Черновик</option>
+                    <option value="in_progress">В анализе</option>
+                    <option value="needs_review">На проверке</option>
+                    <option value="completed">Готов</option>
+                    <option value="failed">Ошибка</option>
+                </select>
+            </label>
+            <button type="button" id="auditsResetFiltersBtn" class="audits-reset-filters is-hidden" onclick="resetAuditsListFilters()" hidden>Сбросить фильтры</button>
+        </div>
+        <div class="audits-toolbar-row audits-toolbar-row-toggles">
+            <label class="audits-toolbar-check"><input type="checkbox" id="auditsExportReadyFilter"> Готов к экспорту</label>
+            <label class="audits-toolbar-check"><input type="checkbox" id="auditsErrorsFilter"> Есть ошибки</label>
+        </div>
+    </div>
+
+    <div id="opsAlertBanner" class="ops-alert-banner" style="display:none;"></div>
+
+    <div id="auditsListPanel">
+    <div id="auditsCardsWrap" class="audits-cards-wrap" aria-label="Список аудитов"></div>
+
+    <!-- Таблица аудитов -->
+    <div class="audits-table-wrap">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th><button type="button" class="audits-sort-btn" data-sort-field="client_name" onclick="toggleAuditsListSort('client_name')">Клиент / аудит</button></th>
+                        <th><button type="button" class="audits-sort-btn" data-sort-field="status" onclick="toggleAuditsListSort('status')">Статус</button></th>
+                        <th>Данные</th>
+                        <th>Задачи</th>
+                        <th class="col-date"><button type="button" class="audits-sort-btn" data-sort-field="updated_at" onclick="toggleAuditsListSort('updated_at')">Обновлено</button></th>
+                        <th class="col-actions">Действие</th>
+                    </tr>
+                </thead>
+                <tbody id="auditsTableBody">
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px;">
+                            <div class="loader loader-dark" style="margin: 0 auto 15px;"></div>
+                            Загрузка...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="auditsPagination" class="audits-pagination" style="display:none;" aria-label="Навигация по страницам списка аудитов"></div>
+    </div>
+    </div>
+</div>
+
+<!-- Модальное окно создания аудита -->
+<div id="createAuditModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>📝 Новый аудит</h3>
+            <button class="modal-close" onclick="closeModal('createAuditModal')">×</button>
+        </div>
+        <div class="modal-body">
+            <form id="createAuditForm">
+                <div class="form-group">
+                    <label>Шаблон аудита</label>
+                    <select id="auditTemplateSelect" name="template_id" class="form-control" onchange="applyAuditTemplate(this.value)">
+                        <option value="">Без шаблона</option>
+                    </select>
+                    <small class="form-hint">Шаблон подставит нишу, цель и стартовый чек-лист для типового аудита.</small>
+                </div>
+                <div id="templateChecklist" class="template-checklist" style="display:none;"></div>
+                <div class="form-group">
+                    <label>Название клиента *</label>
+                    <input type="text" name="client_name" class="form-control" placeholder="Например: Loft Kitchen" required>
+                </div>
+                <div class="form-group">
+                    <label>Регион</label>
+                    <input type="text" name="region" class="form-control" placeholder="Например: Москва">
+                </div>
+                <div class="form-group">
+                    <label>Категория ниши</label>
+                    <select name="niche_category" id="createNicheCategory" class="form-control" onchange="updateNicheSubnicheUi('create')">
+                        <option value="">— выберите —</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Подниша</label>
+                    <input type="text" name="niche_subcategory" id="createNicheSubcategory" class="form-control" oninput="updateNichePreview('create')">
+                    <small class="form-hint" id="createNicheSubnicheHint"></small>
+                </div>
+                <p class="niche-preview muted" id="createNichePreview" style="display:none;"></p>
+                <div class="form-group">
+                    <label>Сайт</label>
+                    <input type="url" name="website" class="form-control" placeholder="https://example.ru">
+                </div>
+                <div class="form-group">
+                    <label>Цель аудита</label>
+                    <textarea name="goal" class="form-control" rows="3" placeholder="Например: Увеличить количество заявок"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Комментарий</label>
+                    <textarea name="comment" class="form-control" placeholder="Дополнительная информация о клиенте"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('createAuditModal')">Отмена</button>
+            <button class="btn btn-primary" onclick="createAudit()">Создать</button>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно: приватность AI-анализа для запуска из витрины -->
+{% include "ai_privacy_modal.html" %}
+{% include "partials/client_edit_modal.html" %}
+{% include "partials/client_contact_modal.html" %}
+{% endblock %}

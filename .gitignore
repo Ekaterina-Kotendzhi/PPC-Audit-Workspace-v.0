@@ -1,10 +1,33 @@
-.env
+# Python
 .venv/
-data/
-app.db
-*.db
-*.db-*
+venv/
 __pycache__/
+*.py[cod]
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 htmlcov/
-.coverage*
+
+# Secrets
+.env
+
+# Local runtime (not source)
+data/app.db
+*.db.corrupt.bak
+data/chroma/*
+!data/chroma/.gitkeep
+data/test_*.db
+data/e2e_*.db
+data/tessdata/*.traineddata
+app/uploads/*
+!app/uploads/.gitkeep
+app/exports/*
+!app/exports/.gitkeep
+
+# Frontend tooling
+frontend/node_modules/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.cursor/

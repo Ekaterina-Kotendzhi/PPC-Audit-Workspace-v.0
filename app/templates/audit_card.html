@@ -1,0 +1,520 @@
+{% extends "base.html" %}
+
+{% block title %}Карточка аудита — PPC Audit Workspace{% endblock %}
+
+{% block content %}
+<div class="container" id="auditWorkspace">
+    <div class="page-header page-header-compact">
+        <div class="page-header-main">
+            <h1 id="clientName">Загрузка...</h1>
+        </div>
+        <div class="page-header-actions page-header-actions-minimal">
+            <span id="userIdentityBadge" class="user-identity-badge" style="display:none;"></span>
+            <div class="dropdown">
+                <button class="btn btn-outline btn-sm dropdown-toggle" type="button" id="btnMoreToggle" onclick="toggleMoreMenu(event)">Ещё ▾</button>
+                <div id="moreActionsMenu" class="dropdown-menu">
+                    <button type="button" id="btnFocusModeToggle" onclick="toggleFocusMode()">Режим фокуса: вкл</button>
+                    <button type="button" id="btnAnalyzeDraft" style="display:none;" onclick="rerunAuditAnalysis()">Перезапустить AI-анализ</button>
+                    <div class="dropdown-divider" id="moreMenuDivider" style="display:none;"></div>
+                    <div class="dropdown-section-label">Экспорт отчёта</div>
+                    <button type="button" onclick="previewAuditReport()">Предпросмотр PDF</button>
+                    <button type="button" onclick="exportAuditReport()">PDF</button>
+                    <button type="button" onclick="exportSlidesPptx()">PPTX</button>
+                    <button type="button" onclick="exportGoogleSlides()">Google Slides</button>
+                </div>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="window.location.href='/'">← К списку</button>
+        </div>
+    </div>
+
+    <section id="dataCommandStrip" class="data-command-strip" aria-label="Прогресс и следующий шаг">
+    <div id="auditCommandBar" class="audit-command-bar" data-command-strip-part="bar">
+        <div class="audit-command-main">
+            <div id="auditProgressStrip" class="audit-progress-strip audit-progress-strip--command" aria-label="Прогресс подготовки" style="display:none;">
+                <div class="audit-progress-seg" title="Структура отчёта">
+                    <span class="audit-progress-label">Структура</span>
+                    <div class="mini-progress"><div id="structureProgressBar" class="mini-progress-fill"></div></div>
+                    <span id="structureProgressLabel" class="audit-progress-pct">0%</span>
+                </div>
+                <div class="audit-progress-seg" title="Минимум данных для аудита">
+                    <span class="audit-progress-label">Данные</span>
+                    <div class="mini-progress"><div id="auditProgressBar" class="mini-progress-fill"></div></div>
+                    <span id="auditProgressLabel" class="audit-progress-pct">0%</span>
+                </div>
+                <div class="audit-progress-seg" title="Полнота чеклиста отчёта">
+                    <span class="audit-progress-label">Отчёт</span>
+                    <div class="mini-progress"><div id="reportProgressBar" class="mini-progress-fill"></div></div>
+                    <span id="reportProgressLabel" class="audit-progress-pct">0%</span>
+                </div>
+            </div>
+            <span id="auditStatus" class="badge badge-draft" style="display:none;">Загрузка…</span>
+            <p id="auditNextStepHint" class="audit-next-hint" style="display:none;">Загрузка…</p>
+            <button type="button" id="issuesStatusBadge" class="audit-tasks-link" style="display:none;" onclick="openIssuesPanel()">
+                <span id="issuesCountBadge">0</span> <span id="issuesTextBadge">открытых пунктов</span> →
+            </button>
+        </div>
+        <button type="button" class="btn btn-success btn-next-step" id="btnAnalyze" onclick="runPrimaryAction()" title="">Следующий шаг</button>
+    </div>
+    <div id="guidedFirstRun" class="guided-first-run" data-command-strip-part="guided" style="display:none;">
+        <div class="guided-first-run-head">
+            <span id="guidedStepBadge" class="guided-step-badge">Шаг 1 из 3</span>
+            <span id="guidedStepDots" class="guided-step-dots" aria-label="Прогресс шагов">●○○</span>
+            <p id="guidedHint" class="guided-hint">Загрузка маршрута…</p>
+        </div>
+        <h3 id="guidedTitle" class="guided-title">Собираем минимальные данные</h3>
+        <div class="guided-actions">
+            <button type="button" id="guidedPrimaryBtn" class="btn btn-primary" onclick="handleGuidedPrimaryAction()">Добавить метрики</button>
+            <button type="button" id="guidedSecondaryBtn" class="btn btn-outline" style="display:none;" onclick="handleGuidedSecondaryAction()">Доп. действие</button>
+        </div>
+    </div>
+    </section>
+    <div id="readyToRunBar" class="ready-run-bar" style="display:none;" aria-hidden="true">
+        <span id="readyToRunText"></span>
+    </div>
+    <div id="analysisStaleBar" class="analysis-stale-bar" style="display:none;" role="status" aria-live="polite"></div>
+    <div id="auditFocusBanner" class="audit-focus-banner" style="display:none;">
+        <p id="auditFocusKpi" class="audit-focus-kpi"></p>
+        <p id="auditFocusProblem" class="audit-focus-problem"></p>
+        <p id="auditFocusWhy" class="audit-focus-why"></p>
+        <p id="auditFocusAction" class="audit-focus-action"></p>
+        <div class="audit-focus-actions">
+            <button type="button" id="auditFocusActionBtn" class="btn btn-primary btn-sm" onclick="runFocusAction()">Исправить сейчас</button>
+        </div>
+    </div>
+
+    <div id="analysisProgress" class="audit-running-bar" style="display:none;" role="status" aria-live="polite">
+        <div class="progress-track"><div id="analysisProgressBar" class="progress-fill" style="width:0%;"></div></div>
+        <p id="analysisProgressMessage" class="progress-message">Анализ выполняется…</p>
+        <span id="analysisProgressPercent" class="visually-hidden">0%</span>
+        <strong id="analysisProgressTitle" class="visually-hidden"></strong>
+        <p id="structureHint" class="visually-hidden"></p>
+        <div id="coverageProgressPanel" class="visually-hidden"></div>
+    </div>
+
+    <!-- Вкладки -->
+    <div class="tabs workflow-tabs" id="workflowTabs">
+        <button class="tab-btn active" id="tabDataBtn" onclick="switchTab('data')">Данные</button>
+        <button class="tab-btn" id="tabResultsBtn" onclick="switchTab('results')" style="display:none;" title="Проверка AI-выводов перед отчётом">Выводы</button>
+        <button class="tab-btn" id="tabReportBtn" onclick="switchTab('report')" style="display:none;" title="Итог для клиента и PDF">Отчёт</button>
+        <button class="tab-btn" id="tabChatBtn" onclick="switchTab('chat')" style="display:none;">AI-чат</button>
+    </div>
+
+    <!-- Вкладка: Данные -->
+    <div id="tab-data" class="tab-content active">
+        <nav class="data-subtabs-flow" id="dataSubtabs" role="tablist" aria-label="Шаги данных: Директ → Источники → Запуск AI">
+            <button type="button" class="data-flow-btn data-flow-btn--step1 data-flow-btn--tab is-active" id="dataSubtabDirect"
+                data-flow-tab="direct" role="tab" aria-selected="true" onclick="switchDataSubtab('direct')">
+                <span class="data-flow-num" aria-hidden="true">1</span>
+                <span class="data-flow-label">Директ</span>
+            </button>
+            <button type="button" class="data-flow-btn data-flow-btn--step2 data-flow-btn--tab" id="dataSubtabSources"
+                data-flow-tab="sources" role="tab" aria-selected="false" onclick="switchDataSubtab('sources')">
+                <span class="data-flow-num" aria-hidden="true">2</span>
+                <span class="data-flow-label">Источники</span>
+            </button>
+            <button type="button" class="data-flow-btn data-flow-btn--step3" id="dataSubtabRunAi"
+                onclick="handleDataFlowRunAi()" title="Запуск AI-анализа по Excel и материалам с «В AI»">
+                <span class="data-flow-num" aria-hidden="true">3</span>
+                <span class="data-flow-label" id="dataSubtabRunAiLabel">Запуск AI</span>
+            </button>
+        </nav>
+        <div id="dataPaneDirect" class="data-subpane is-active" role="tabpanel">
+            <div id="dataNowSummary" class="data-now-summary"></div>
+            <div id="directAnalyticsPanel" class="direct-analytics-panel" style="display:none;"></div>
+        </div>
+        <div id="dataPaneSources" class="data-subpane" role="tabpanel" hidden>
+            <div id="analyticsReadinessPanel" class="analytics-readiness-panel" style="display:none;"></div>
+            <div id="focusSecondaryToggleWrap" class="focus-secondary-toggle" style="display:none;">
+                <button type="button" id="btnToggleDataSecondary" class="btn btn-outline btn-sm" onclick="toggleDataSecondaryArea()">Показать рабочую область</button>
+            </div>
+            <div id="dataSecondaryArea">
+                <div class="sources-toolbar">
+                    <div class="sources-toolbar__main">
+                        <div class="dropdown sources-add-dropdown">
+                            <button type="button" class="btn btn-primary btn-sm dropdown-toggle" id="btnSourcesAdd"
+                                onclick="toggleSourcesAddMenu(event)">+ Добавить</button>
+                            <div id="sourcesAddMenu" class="dropdown-menu sources-add-menu">
+                                <button type="button" onclick="openNewMaterial('textNoteModal'); closeSourcesAddMenu()">Заметка</button>
+                                <button type="button" onclick="openNewMaterial('audioModal'); closeSourcesAddMenu()">Аудио</button>
+                                <button type="button" onclick="openNewMaterial('screenshotModal'); closeSourcesAddMenu()">Скриншот</button>
+                                <button type="button" onclick="openModal('documentModal'); closeSourcesAddMenu()">Документ</button>
+                                <div class="dropdown-divider sources-add-menu__admin-divider" id="sourcesAddAdminDivider" style="display:none;"></div>
+                                <button type="button" class="sources-add-menu__admin" id="sourcesAddCleanupBtn" style="display:none;"
+                                    onclick="cleanupStaleMaterials(); closeSourcesAddMenu()">Очистить дубли</button>
+                            </div>
+                        </div>
+                        <span id="sourcesAiCountBadge" class="sources-ai-count" hidden></span>
+                        <button type="button" id="btnReocrAllScreenshots" class="btn btn-outline btn-sm"
+                            style="display:none" onclick="reocrAllScreenshots()">Распознать все скрины</button>
+                    </div>
+                    <div id="sourcesSearchWrap" class="sources-toolbar__search" hidden>
+                        <label for="materialsSearchInput" class="visually-hidden">Поиск</label>
+                        <input type="search" id="materialsSearchInput" class="form-control form-control-compact"
+                            placeholder="Поиск…" autocomplete="off" oninput="filterMaterialsList()">
+                    </div>
+                </div>
+                <div id="sourcesAiFilterWrap" class="sources-ai-filters" hidden aria-label="Фильтр материалов для AI"></div>
+                <div id="materialsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="materialDrawer" class="material-drawer" aria-hidden="true">
+        <div class="material-drawer-backdrop" onclick="closeMaterialDrawer()"></div>
+        <aside class="material-drawer-panel" role="dialog" aria-labelledby="materialDrawerTitle">
+            <header class="material-drawer-header">
+                <h3 id="materialDrawerTitle">Материал</h3>
+                <button type="button" class="btn btn-outline btn-sm" onclick="closeMaterialDrawer()" aria-label="Закрыть">×</button>
+            </header>
+            <div id="materialDrawerBody" class="material-drawer-body"></div>
+            <footer id="materialDrawerFooter" class="material-drawer-footer"></footer>
+        </aside>
+    </div>
+
+    <div id="directConditionsModal" class="modal-overlay" role="dialog" aria-labelledby="directConditionsModalTitle">
+        <div class="modal modal-wide">
+            <div class="modal-header">
+                <h3 id="directConditionsModalTitle">Условия показа</h3>
+                <button type="button" class="modal-close" onclick="closeModal('directConditionsModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="directConditionsModalBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('directConditionsModal')">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Вкладка: Результаты -->
+    <div id="tab-results" class="tab-content">
+        <div id="kbStatusCard" class="kb-status-card" style="display:none;"></div>
+        <div id="resultsIssuesList" class="data-issues-panel results-issues-panel" style="display:none;"></div>
+        <div id="findingsList"></div>
+        <details id="findingsRecSummaryPanel" class="findings-rec-summary-panel">
+            <summary class="findings-rec-summary-summary">Сводка рекомендаций AI <span class="muted">— обзор по всем выводам, проверка в карточках выше</span></summary>
+            <div id="recommendationsList" class="findings-rec-summary-body"></div>
+        </details>
+        <div id="offerContainer"></div>
+    </div>
+
+    <!-- Вкладка: Отчёт -->
+    <div id="tab-report" class="tab-content">
+        <div id="reportPreliminaryBanner" style="display:none;"></div>
+        <div id="analysisFailedBanner" style="display:none;"></div>
+        <div id="reportSendStatus" class="report-send-status" style="display:none;" role="status" aria-live="polite"></div>
+        <div id="reportExecutiveHero" class="report-executive-hero card" style="display:none;"></div>
+        <div class="card" id="reportAiSummaryCard">
+            <div class="card-header card-header-with-action">
+                <h3>Краткий вывод</h3>
+                <div class="card-header-actions">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="refreshReportSummaryFromAudit()" title="Заполнить суть, риск и шаг из Excel и AI без перезапуска">Обновить текст</button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="toggleReportSummaryEdit(true)" title="Правка текста для PDF">Редактировать</button>
+                    <button type="button" class="btn btn-outline btn-sm report-hide-in-client-view" onclick="generateClientSnapshotDraft()" title="AI-черновик текстов для PDF (M2.3)">AI-черновик</button>
+                </div>
+            </div>
+            <div class="card-body ai-summary-grid ai-summary-grid--report">
+                <div class="ai-summary-item ai-summary-item-wide">
+                    <span class="ai-summary-label">Суть</span>
+                    <p id="summaryProblem" class="ai-summary-value">—</p>
+                </div>
+                <div class="ai-summary-item ai-summary-item-wide">
+                    <span class="ai-summary-label">Если не исправить</span>
+                    <p id="summaryRisk" class="ai-summary-value">—</p>
+                </div>
+                <div class="ai-summary-row-pair">
+                    <div class="ai-summary-item">
+                        <span class="ai-summary-label">Приоритет</span>
+                        <p id="summaryPriorityText" class="ai-summary-value ai-summary-priority-text">—</p>
+                        <span id="summaryPriority" class="badge report-priority-badge" style="display:none;" aria-hidden="true">—</span>
+                    </div>
+                    <div class="ai-summary-item">
+                        <span class="ai-summary-label">Следующий шаг</span>
+                        <p id="summaryConclusion" class="ai-summary-value">—</p>
+                    </div>
+                </div>
+            </div>
+            <div id="reportSummaryEditHost" class="report-summary-edit-host"></div>
+        </div>
+        <section class="report-section report-section--kpi" aria-label="Метрики и динамика">
+        <div id="reportDynamicsLead" class="card report-dynamics-lead" style="display:none;">
+            <div class="card-body">
+                <h3 id="reportDynamicsLeadTitle">Динамика KPI</h3>
+                <p id="reportDynamicsLeadHint" class="muted">Сравнение сохранённых периодов метрик.</p>
+            </div>
+        </div>
+        <div id="healthKpiStrip" class="health-kpi-strip"></div>
+        <div id="comparisonContainer"><p class="muted">Добавьте минимум два периода метрик для сравнения до/после.</p></div>
+        <div class="card" id="reportMetricsCard">
+            <div class="card-header card-header-with-action">
+                <h3>Ключевые метрики</h3>
+                <button type="button" class="btn btn-outline btn-sm" onclick="scrollToMetricsPeriodsPanel()" title="Добавить или изменить периоды KPI">Периоды KPI</button>
+            </div>
+            <div class="card-body">
+                <p id="reportActivePeriodNote" class="report-active-period-note muted"></p>
+                <p id="reportAnalysisMeta" class="muted report-analysis-meta report-internal-only" style="display:none;"></p>
+                <div id="reportStaleDetails" class="report-stale-details report-internal-only" style="display:none;"></div>
+                <p id="metricsKpiSource" class="muted metrics-kpi-source report-internal-only" style="display:none;"></p>
+                <p id="metricsReportAsOf" class="muted metrics-report-asof" style="display:none;"></p>
+                <div id="metricsReportExplain" class="metrics-report-explain" style="display:none;"></div>
+                <table id="reportMetricsTable">
+                    <tr><td>Период</td><td id="metricPeriod">—</td></tr>
+                    <tr><td>Бюджет</td><td id="metricBudgetDisplay">—</td></tr>
+                    <tr><td>Клики</td><td id="metricClicks">—</td></tr>
+                    <tr><td>Заявки</td><td id="metricLeads">—</td></tr>
+                    <tr><td>Продажи</td><td id="metricSales">—</td></tr>
+                    <tr><td>Выручка</td><td id="metricRevenue">—</td></tr>
+                    <tr><td>CPL</td><td id="metricCPL">—</td></tr>
+                    <tr><td>CPA</td><td id="metricCPA">—</td></tr>
+                    <tr><td>ROMI</td><td id="metricROMI">—</td></tr>
+                    <tr><td>Валовая прибыль</td><td id="metricGrossProfit">—</td></tr>
+                    <tr><td>Маржинальность</td><td id="metricMargin">—</td></tr>
+                    <tr><td>ДРР</td><td id="metricDRR">—</td></tr>
+                </table>
+                <button type="button" class="btn btn-primary btn-sm" id="btnAddMetricsFromReport" style="margin-top:12px;" onclick="openMetricsEditorAddPeriod()">➕ Добавить период</button>
+                <div id="metricsReviewBlock" style="display: none;" class="needs-review-block">
+                    <span class="review-label">⚠️ Требует проверки:</span>
+                    <span id="metricsReviewReason"></span>
+                </div>
+            </div>
+        </div>
+        </section>
+        <div class="card" id="reportConfirmedPreviewCard" style="display:none;">
+            <div class="card-header card-header-with-action">
+                <h3>Согласованные наблюдения</h3>
+                <button type="button" class="btn btn-outline btn-sm" onclick="goToFindingsInReport()" title="Вкладка «Выводы», фильтр «В отчёте»">К выводам в отчёте</button>
+            </div>
+            <div class="card-body">
+                <p class="muted report-confirmed-lead">Как в PDF: только подтверждённые выводы с вкладки «Выводы».</p>
+                <div id="reportConfirmedPreviewBody"></div>
+            </div>
+        </div>
+        <div id="reportCannotEvaluate" style="display:none;"></div>
+        <div id="zoneScoresContainer"></div>
+        <div id="chartsContainer"></div>
+        <div id="auditFlowContainer"></div>
+        <div id="directHealthReportContainer" style="display:none;" aria-hidden="true"></div>
+        <section class="report-section report-section--deal" aria-label="План работ и прогноз">
+        <div class="card" id="reportOfferCard">
+            <div class="card-header card-header-with-action">
+                <h3>Коммерческое предложение</h3>
+                <div class="card-header-actions">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="refreshReportCommercialOfferFromAudit()" title="Сформировать КП и прогноз из Excel и выводов без перезапуска AI">Сформировать из аудита</button>
+                </div>
+            </div>
+            <div class="card-body" id="reportOfferContainer">
+                <p class="muted">План работ появится после AI-анализа.</p>
+            </div>
+        </div>
+        <div class="card" id="reportAuditPlanCard">
+            <div class="card-header"><h3>Прогноз и цели</h3></div>
+            <div class="card-body" id="reportAuditPlanContainer">
+                <p class="muted">Зафиксируйте базовую линию KPI, цели и сценарии для клиентского PDF.</p>
+            </div>
+        </div>
+        </section>
+        <details class="card report-illustrations-details" id="reportIllustrationsGuideCard">
+            <summary class="card-header report-illustrations-summary">
+                <span class="report-illustrations-summary-title">Скрины к выводам</span>
+                <span class="muted" id="reportIllustrationsStatus">—</span>
+            </summary>
+            <div class="card-body">
+                <p class="muted report-illustrations-hint">Скрин и подпись — на «Выводы». В приложение ниже — только общие графики без вывода (до 3).</p>
+                <div id="reportFindingIllustrationsPreview"></div>
+            </div>
+        </details>
+        <div class="card" id="reportAppendixCard">
+            <div class="card-header card-header-with-action">
+                <h3>Дополнительные иллюстрации (приложение)</h3>
+                <span class="muted" id="reportAppendixCounter">0 / 3</span>
+            </div>
+            <div class="card-body">
+                <p class="muted report-appendix-intro">Для графиков <strong>без отдельного вывода</strong>: обзорный скрин, несколько периодов, контекст. Скрины, уже прикреплённые к выводам на «Выводы», сюда добавить нельзя — они идут inline под выводом.</p>
+                <div id="reportAppendixList"></div>
+                <div class="report-appendix-actions">
+                    <button type="button" class="btn btn-outline btn-sm" id="btnAddReportAppendix" onclick="openReportAppendixPicker()">+ Добавить иллюстрацию</button>
+                </div>
+            </div>
+        </div>
+        <details class="report-prep-details card">
+            <summary class="report-internal-summary">Перед отправкой PDF</summary>
+            <div class="report-internal-body">
+                <label class="report-client-view-toggle report-client-view-toggle--block">
+                    <input type="checkbox" id="reportClientViewToggle" onchange="setReportClientView(this.checked)">
+                    <span>Клиентский вид (скрыть чеклисты и служебные блоки)</span>
+                </label>
+                <div class="report-hide-in-client-view">
+                <div class="card report-send-checklist-card" id="reportSendChecklistCard">
+                    <div class="card-header"><h3>Готово отправить клиенту</h3></div>
+                    <div class="card-body" id="reportSendChecklistBody"><p class="muted">Отметьте пункты перед отправкой PDF.</p></div>
+                </div>
+                <div class="card report-pre-pdf-card">
+                    <div class="card-header card-header-with-action">
+                        <h3>Готовность к PDF</h3>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="runPrePdfCheck()">Проверить готовность</button>
+                    </div>
+                    <div id="prePdfCheckResult" class="card-body muted"><p>Чеклист перед отправкой PDF клиенту.</p></div>
+                </div>
+                </div>
+            </div>
+        </details>
+        <details class="report-internal-details card">
+            <summary class="report-internal-summary">Данные проекта (для CRM и правок)</summary>
+            <div class="report-internal-body">
+                <div class="card report-internal-card">
+                    <div class="card-header card-header-with-action">
+                        <h3>Информация о клиенте</h3>
+                        <button type="button" class="btn btn-outline btn-sm" id="btnEditClient" onclick="openEditClientModal()">Редактировать</button>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Клиент:</strong> <span id="clientName2">—</span></p>
+                        <p><strong>Регион:</strong> <span id="clientRegion">—</span></p>
+                        <p><strong>Ниша:</strong> <span id="clientNiche">—</span></p>
+                        <p><strong>Сайт:</strong> <span id="clientWebsite">—</span></p>
+                        <p><strong>Цель аудита:</strong> <span id="auditGoal">—</span></p>
+                        <p class="report-internal-only"><strong>Комментарий (только для команды):</strong> <span id="clientComment">—</span></p>
+                    </div>
+                </div>
+                <div class="card report-internal-card" id="clientContactsCard">
+                    <div class="card-header card-header-with-action">
+                        <h3>Контакты</h3>
+                        <button type="button" class="btn btn-outline btn-sm" id="btnAddContact" onclick="openContactModal()">Добавить контакт</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="clientContactsList" class="client-contacts-list">
+                            <p class="muted">Контакты не добавлены. Добавьте ЛПР или маркетолога клиента.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <!-- Вкладка: Вопросы AI -->
+    <div id="tab-chat" class="tab-content tab-chat-layout">
+        <p class="muted chat-tab-lead">Спросите про метрики, материалы, выводы. Выберите развёрнутость и температуру — от сжатого факта до развёрнутого разбора. Режим «как для клиента» — без внутренних пометок.</p>
+        <div class="chat-panel">
+            <div id="chatMessages" class="chat-messages" role="log" aria-live="polite"></div>
+            <div class="chat-compose-sticky">
+        <div id="chatSuggestedQuestions" class="chat-suggestions" aria-label="Подсказки вопросов"></div>
+        <div class="chat-compose">
+            <fieldset class="chat-audience-toggle" aria-label="Режим ответа">
+                <label class="radio-line"><input type="radio" name="chatAudienceMode" value="internal" checked> Внутренний</label>
+                <label class="radio-line"><input type="radio" name="chatAudienceMode" value="client"> Как для клиента</label>
+            </fieldset>
+            <fieldset class="chat-style-toggle" aria-label="Развёрнутость ответа">
+                <span class="chat-style-toggle-label">Ответ:</span>
+                <label class="radio-line"><input type="radio" name="chatResponseStyle" value="brief"> Кратко</label>
+                <label class="radio-line"><input type="radio" name="chatResponseStyle" value="balanced" checked> Стандарт</label>
+                <label class="radio-line"><input type="radio" name="chatResponseStyle" value="deep"> Развёрнуто</label>
+            </fieldset>
+            <details class="chat-temp-details">
+                <summary>Температура ответа</summary>
+                <div class="temperature-panel chat-temperature-panel">
+                    <label for="chatTemperatureRange">Креативность модели: <strong id="chatTemperatureValue">0.4</strong></label>
+                    <input id="chatTemperatureRange" type="range" min="0" max="1" step="0.05" value="0.42">
+                    <div class="temperature-scale"><span>Точнее, суше</span><span>Живее, разнообразнее</span></div>
+                    <p class="muted chat-temp-hint">При смене «Кратко / Стандарт / Развёрнуто» подставляется рекомендуемое значение; ползунок можно сдвинуть вручную.</p>
+                </div>
+            </details>
+            <div class="form-group">
+                <label for="chatModelSelect">Модель</label>
+                <select id="chatModelSelect" class="form-control"></select>
+            </div>
+            <textarea id="chatQuestionInput" class="form-control" rows="3" placeholder="Например: какие метрики не хватает для ROMI? или что в очереди проверки?"></textarea>
+            <label class="checkbox-line" style="margin-top:8px;">
+                <input type="checkbox" id="chatVerifiedOnlyCheckbox">
+                Только проверенные данные
+            </label>
+            <button type="button" class="btn btn-primary" id="chatSendBtn" onclick="sendAuditQuestion()">Спросить AI</button>
+        </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальные окна для добавления материалов -->
+{% include "material_modals.html" %}
+<!-- Модальное окно: приватность AI-анализа -->
+{% include "ai_privacy_modal.html" %}
+
+
+<!-- Модальное окно: правка вывода (AI или сигнал Excel) -->
+<div id="findingEditModal" class="modal-overlay">
+    <div class="modal modal-wide">
+        <div class="modal-header">
+            <h3 id="findingEditModalTitle">Правка вывода</h3>
+            <button class="modal-close" onclick="closeModal('findingEditModal')">×</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="findingEditId">
+            <input type="hidden" id="findingEditArea">
+            <p id="findingEditModalIntro" class="muted finding-edit-intro">Проверьте вывод: что не так, что предлагаем сделать и какой эффект ожидаем.</p>
+            <p id="findingEditAreaReadonly" class="finding-edit-area-readonly muted" hidden></p>
+            <div id="findingEditPdfPreview" class="finding-edit-pdf-preview" hidden>
+                <p class="finding-edit-pdf-preview-label muted">Так попадёт в PDF (согласованные наблюдения):</p>
+                <div id="findingEditPdfPreviewBody" class="finding-edit-pdf-preview-body"></div>
+            </div>
+            <button type="button" class="btn btn-link btn-sm finding-edit-expert-toggle finding-edit-expert-only" id="findingEditExpertToggle" hidden>Скрыть раздел, приоритет и базу знаний</button>
+            <button type="button" class="btn btn-link btn-sm finding-edit-expert-toggle" id="findingEditExpertExpand">Раздел, приоритет, база знаний…</button>
+            <div class="form-grid finding-edit-expert-only">
+                <div class="form-group finding-edit-ai-only" id="findingEditAreaSelectRow">
+                    <label>Раздел аудита</label>
+                    <select id="findingEditAreaSelect">
+                        <option value="crm">CRM и продажи</option>
+                        <option value="semantics">Семантика (ключевые слова)</option>
+                        <option value="landing">Посадочные страницы</option>
+                        <option value="analytics">Аналитика</option>
+                        <option value="budget">Бюджет и ставки</option>
+                        <option value="structure">Структура кампаний</option>
+                        <option value="creatives">Креативы</option>
+                        <option value="other">Другое</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label id="findingEditSeverityLabel">Приоритет</label>
+                    <select id="findingEditSeverity">
+                        <option value="low">Низкий</option>
+                        <option value="medium">Средний</option>
+                        <option value="high">Высокий</option>
+                    </select>
+                </div>
+                <div class="form-group finding-edit-ai-only">
+                    <label>Уверенность (0–1)</label>
+                    <input id="findingEditConfidence" type="number" min="0" max="1" step="0.05">
+                    <small class="muted">0.2 — слабая уверенность, 0.8+ — высокая</small>
+                </div>
+            </div>
+            <div class="form-group">
+                <label id="findingEditProblemLabel">Что не так</label>
+                <textarea id="findingEditProblem" rows="4" placeholder="Опишите проблему простым языком"></textarea>
+            </div>
+            <div class="form-group">
+                <label id="findingEditRecommendationLabel">Что сделать</label>
+                <textarea id="findingEditRecommendation" rows="4" placeholder="Конкретное действие для исправления"></textarea>
+            </div>
+            <div class="form-group">
+                <label id="findingEditImpactLabel">Какой ожидаем эффект</label>
+                <textarea id="findingEditImpact" rows="3" placeholder="Как это повлияет на заявки/качество лидов/стоимость"></textarea>
+            </div>
+            <div class="finding-edit-expert-only">
+            <label class="checkbox-line finding-edit-ai-only">
+                <input type="checkbox" id="findingEditNeedsReview"> Требует дополнительной проверки
+            </label>
+            <label class="checkbox-line">
+                <input type="checkbox" id="findingEditApprovedForKb"> <span id="findingEditKbLabel">Использовать этот вывод в будущих аудитах</span>
+            </label>
+            </div>
+            <div class="form-group">
+                <label>Комментарий</label>
+                <textarea id="findingEditComment" rows="3" placeholder="Например: часть заявок пришла из других каналов, нужно пересчитать CPL"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" type="button" onclick="closeModal('findingEditModal')">Отмена</button>
+            <button class="btn btn-primary" type="button" onclick="saveFindingEdit()">Сохранить правку</button>
+        </div>
+    </div>
+</div>
+
+{% include "partials/client_edit_modal.html" %}
+{% include "partials/client_contact_modal.html" %}
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Здоровье системы — PPC Audit Workspace{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <div>
+            <h1>🛠️ Здоровье системы</h1>
+            <p class="muted" style="margin:6px 0 0;">Операционные метрики и алерты за выбранное окно.</p>
+            <p id="opsHealthUpdatedAt" class="muted" style="margin:4px 0 0;">Последнее обновление: —</p>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <select id="opsHealthWindow" class="form-control" style="max-width:170px;">
+                <option value="1">Последний 1 час</option>
+                <option value="6">Последние 6 часов</option>
+                <option value="24" selected>Последние 24 часа</option>
+                <option value="72">Последние 72 часа</option>
+            </select>
+            <label class="checkbox-line" style="margin:0 4px 0 0;">
+                <input id="opsHealthAutoRefresh" type="checkbox" checked onchange="toggleOpsHealthAutoRefresh()">
+                Автообновление
+            </label>
+            <button class="btn btn-outline btn-sm" onclick="loadOpsHealthPage()">Обновить</button>
+        </div>
+    </div>
+
+    <div id="opsHealthAlerts"></div>
+
+    <div class="ops-health-grid">
+        <div class="card">
+            <div class="card-header"><h3>API</h3></div>
+            <div class="card-body">
+                <p><strong>5xx за последний час:</strong> <span id="opsApi5xxHour">—</span></p>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header"><h3>Запуски</h3></div>
+            <div class="card-body">
+                <p><strong>Ошибки запусков:</strong> <span id="opsFailedTotal">—</span></p>
+                <div id="opsFailedByAction" class="muted" style="margin-top:8px;"></div>
+                <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+                    <a class="btn btn-outline btn-sm" href="/audit-runs?status=failed">Открыть failed runs</a>
+                    <a class="btn btn-outline btn-sm" href="/audit-runs?status=failed&action=ai_analysis">Только ai_analysis failed</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

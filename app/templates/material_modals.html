@@ -1,0 +1,284 @@
+<!-- Модальное окно: Текстовая заметка -->
+<div id="textNoteModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>📝 Текстовая заметка</h3>
+            <button class="modal-close" onclick="closeModal('textNoteModal')">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Название</label>
+                <input type="text" id="textNoteTitle" class="form-control" placeholder="Например: Комментарий после созвона">
+            </div>
+            <div class="form-group">
+                <label>Текст заметки *</label>
+                <textarea id="textNoteContent" class="form-control" rows="6" placeholder="Введите текст заметки..." required></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('textNoteModal')">Отмена</button>
+            <button class="btn btn-primary" id="textNoteSubmitBtn" onclick="submitTextNote()">Добавить</button>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно: Аудио -->
+<div id="audioModal" class="modal-overlay">
+    <div class="modal modal-audio">
+        <div class="modal-header">
+            <h3 id="audioModalTitle">🎤 Аудиозаметка</h3>
+            <button class="modal-close" onclick="closeModal('audioModal')">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Название</label>
+                <input type="text" id="audioTitle" class="form-control" placeholder="Например: Голосовая заметка после созвона">
+            </div>
+
+            <div id="audioExistingBlock" class="audio-existing-block" style="display:none;">
+                <label>Текущая запись</label>
+                <div id="audioExistingPlayer"></div>
+            </div>
+
+            <div id="audioCaptureBlock">
+                <p class="step-label">Шаг 1. Аудио</p>
+                <div class="audio-recorder">
+                    <button class="btn btn-danger btn-sm" id="btnStartRecord" onclick="startRecording()">🔴 Записать с микрофона</button>
+                    <button class="btn btn-primary btn-sm" id="btnStopSaveRecord" onclick="stopRecording(true)" disabled>⏹ Остановить</button>
+                    <button class="btn btn-outline btn-sm" id="btnCancelRecord" onclick="cancelRecording()" disabled>Отмена записи</button>
+                    <div id="recordingIndicator" class="recording-indicator-row" style="display: none;">
+                        <div class="recording-indicator"></div>
+                        <strong id="recordingStatusText">Идёт запись</strong>
+                        <span class="recording-time" id="recordingTime">00:00</span>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top:12px;">
+                    <label>Или выберите файл</label>
+                    <input type="file" id="audioFileInput" class="form-control" accept=".mp3,.wav,.webm,.m4a,.ogg">
+                    <small class="muted">mp3, wav, webm, m4a, ogg — до 15 мин записи</small>
+                </div>
+                <div id="audioPreview" style="display: none; margin-top: 10px;"></div>
+            </div>
+
+            <div class="form-group" style="margin-top:16px;">
+                <p class="step-label">Шаг 2. Расшифровка</p>
+                <p class="muted" style="margin-bottom:8px;">Напишите текст вручную или нажмите «Распознать речь». Без проверенной расшифровки материал попадёт в «Проверку».</p>
+                <div style="display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
+                    <button type="button" class="btn btn-outline btn-sm" id="btnSpeechToText" onclick="toggleBrowserSpeechRecognition()">🗣️ Распознать речь</button>
+                </div>
+                <textarea id="audioTranscript" class="form-control" rows="5" placeholder="Текст расшифровки..."></textarea>
+                <label class="checkbox-line" style="margin-top:10px;">
+                    <input type="checkbox" id="audioTranscriptConfirmed"> Я проверил(а) расшифровку — можно использовать в анализе
+                </label>
+            </div>
+
+            <details class="audio-advanced">
+                <summary>Дополнительно (источник, согласие)</summary>
+                <label class="checkbox-line" style="margin:10px 0 8px;"><input type="checkbox" id="webSpeechConsent"> Клиент согласен на облачное распознавание (Chrome/Edge → Google)</label>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Источник</label>
+                        <select id="audioTranscriptSource" class="form-control">
+                            <option value="manual">Ручная</option>
+                            <option value="web_speech">Web Speech API</option>
+                            <option value="external_stt">Внешний STT</option>
+                        </select>
+                    </div>
+                </div>
+            </details>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('audioModal')">Отмена</button>
+            <button class="btn btn-primary" id="audioSubmitBtn" onclick="submitAudioMaterial()">Добавить</button>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно: Скриншот -->
+<div id="screenshotModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>📷 Скриншот</h3>
+            <button class="modal-close" onclick="closeModal('screenshotModal')">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Название</label>
+                <input type="text" id="screenshotTitle" class="form-control" placeholder="Например: Статистика кампании">
+            </div>
+            <div class="form-group" id="screenshotFileGroup">
+                <label>Файл скриншота *</label>
+                <div class="drop-zone" data-target="screenshotFileInput">
+                    <div class="drop-zone-title">Перетащите скриншот сюда</div>
+                    <div class="drop-zone-hint">png, jpg, jpeg, gif, webp</div>
+                </div>
+                <input type="file" id="screenshotFileInput" class="form-control" accept=".png,.jpg,.jpeg,.gif,.webp" required>
+            </div>
+            <div class="form-group">
+                <label>Тип скриншота (для аудита Директа)</label>
+                <select id="screenshotSetupKind" class="form-control">
+                    <option value="structure">Структура кампаний</option>
+                    <option value="strategy">Стратегия и цели</option>
+                    <option value="adjustments">Корректировки ставок</option>
+                    <option value="creative">Тексты объявлений</option>
+                    <option value="other">Прочее</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Что видно на скриншоте? (OCR / описание)</label>
+                <textarea id="screenshotOcrText" class="form-control" rows="4" placeholder="Опишите, что видно на скриншоте: цифры, период, подписи..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('screenshotModal')">Отмена</button>
+            <button class="btn btn-primary" id="screenshotSubmitBtn" onclick="submitScreenshot()">Добавить</button>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно: Метрики -->
+<div id="metricsModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>📊 Метрики (период KPI)</h3>
+            <button class="modal-close" onclick="closeModal('metricsModal')">×</button>
+        </div>
+        <div class="modal-body">
+            <div id="metricsFormError" class="form-error" style="display:none;"></div>
+            <p id="metricsModalModeHint" class="form-hint muted" style="margin-bottom:12px;"></p>
+            <div class="form-group metric-period-group">
+                <label>Период</label>
+                <p class="form-hint muted" style="margin-bottom:8px;">Выберите даты в календаре (С / По). Для импорта из Директа месяцы уже в списке «Периоды KPI» на вкладке «Данные».</p>
+                <div class="metric-period-range">
+                    <div class="metric-period-date-field">
+                        <span class="metric-period-date-label">С</span>
+                        <div class="metric-period-date-wrap">
+                            <input type="text" id="metricPeriodStartDisplay" class="form-control metric-period-date-display" readonly tabindex="0" aria-label="Дата начала периода" placeholder="ДД.ММ.ГГГГ">
+                            <input type="date" id="metricPeriodStartInput" class="metric-period-date-native" tabindex="-1" aria-hidden="true">
+                        </div>
+                    </div>
+                    <div class="metric-period-date-field">
+                        <span class="metric-period-date-label">По</span>
+                        <div class="metric-period-date-wrap">
+                            <input type="text" id="metricPeriodEndDisplay" class="form-control metric-period-date-display" readonly tabindex="0" aria-label="Дата окончания периода" placeholder="ДД.ММ.ГГГГ">
+                            <input type="date" id="metricPeriodEndInput" class="metric-period-date-native" tabindex="-1" aria-hidden="true">
+                        </div>
+                    </div>
+                </div>
+                <p id="metricPeriodPreview" class="form-hint metric-period-preview" aria-live="polite"></p>
+                <input type="hidden" id="metricPeriodInput">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Бюджет (₽)</label>
+                    <input type="number" id="metricBudgetInput" class="form-control" min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Клики</label>
+                    <input type="number" id="metricClicksInput" class="form-control" min="0" step="1">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Лиды (всего)</label>
+                    <input type="number" id="metricLeadsInput" class="form-control" min="0" step="1">
+                    <p class="form-hint">Форма + мессенджер, если заполнены отдельно — суммируются автоматически.</p>
+                </div>
+                <div class="form-group">
+                    <label>Продажи</label>
+                    <input type="number" id="metricSalesInput" class="form-control" min="0" step="1">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Заявки (форма)</label>
+                    <input type="number" id="metricLeadsFormsInput" class="form-control" min="0" step="1">
+                </div>
+                <div class="form-group">
+                    <label>Мессенджеры</label>
+                    <input type="number" id="metricLeadsMessengerInput" class="form-control" min="0" step="1">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Выручка (₽)</label>
+                <input type="number" id="metricRevenueInput" class="form-control" min="0" step="0.01">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Валовая прибыль (₽)</label>
+                    <input type="number" id="metricGrossProfitInput" class="form-control" min="0" step="0.01">
+                    <p class="form-hint">Опционально. Можно рассчитать из маржинальности.</p>
+                </div>
+                <div class="form-group">
+                    <label>Маржинальность (%)</label>
+                    <input type="number" id="metricMarginInput" class="form-control" min="0" max="100" step="0.1">
+                </div>
+            </div>
+            <div class="form-group" id="metricSetActiveRow" style="display:none;">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="metricSetActiveInput" checked>
+                    Использовать для отчёта и AI-анализа (активный период)
+                </label>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('metricsModal')">Отмена</button>
+            <button class="btn btn-primary" type="button" id="metricsSubmitBtn" onclick="submitMetrics()">Добавить</button>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно: Документ -->
+<div id="documentModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>📄 Документ</h3>
+            <button class="modal-close" onclick="closeModal('documentModal')">×</button>
+        </div>
+        <div class="modal-body">
+            <p id="documentModalHint" class="muted" style="margin-bottom:10px;">
+                Загрузите документ или выгрузку, которая закроет текущий пункт чеклиста.
+            </p>
+            <p id="documentModalGuide" class="muted document-modal-guide" style="margin-bottom:10px;font-size:0.92em;">
+                <strong>Что куда:</strong> короткий текст или KPI — в <em>Заметку</em>; выгрузки xlsx/csv/pdf — в <em>Документ</em>;
+                скрин кампании — <em>Скриншот</em>. После загрузки перезапустите AI-анализ, если был баннер «данные изменились».
+            </p>
+            <div class="form-group">
+                <label>Название</label>
+                <input type="text" id="documentTitle" class="form-control" placeholder="Например: Выгрузка кампаний">
+            </div>
+            <div class="form-group">
+                <label>Файл *</label>
+                <input type="file" id="documentFileInput" class="form-control" accept=".txt,.md,.csv,.xlsx,.pdf,.docx">
+                <small id="documentFileLimits" class="muted">txt, md, csv, xlsx, pdf, docx — до 50 МБ</small>
+                <p class="muted" style="margin-top:8px;font-size:0.9em;">
+                    Для PPC-аудита лучше всего: <strong>Мастер отчётов</strong> Яндекс Директа (.xlsx) с колонками
+                    «Расход», «Клики», «Конверсии» и строкой «Итого». Система соберёт срез по кампаниям и перенесёт KPI в метрики.
+                </p>
+                <p id="documentUploadStatus" class="muted" style="display:none;margin-top:8px;"></p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('documentModal')">Отмена</button>
+            <button class="btn btn-primary" onclick="addDocument()">Загрузить</button>
+        </div>
+    </div>
+</div>
+
+<!-- Просмотр загруженного документа -->
+<div id="documentPreviewModal" class="modal-overlay">
+    <div class="modal modal-wide">
+        <div class="modal-header">
+            <h3>Просмотр документа</h3>
+            <button class="modal-close" onclick="closeModal('documentPreviewModal')">×</button>
+        </div>
+        <div class="modal-body">
+            <div id="documentSliceSummary" class="document-slice-summary" style="display:none;margin-bottom:12px;"></div>
+            <pre id="documentPreviewText" class="document-preview-text muted">Текст не извлечён</pre>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" id="documentImportPeriodsBtn" style="display:none;" onclick="importDirectPeriodsFromPreview()">Заполнить периоды KPI из файла</button>
+            <button class="btn btn-outline" onclick="closeModal('documentPreviewModal')">Закрыть</button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,172 @@
+/**
+ * AI-чат + guided-баннер + command bar + workflow hints
+ */
+
+/* —— Command bar & progress —— */
+.audit-command-bar {
+    font-family: var(--font-sans);
+    border-radius: var(--radius-md);
+}
+.audit-next-hint {
+    font-size: var(--text-base);
+}
+.audit-progress-strip {
+    border-radius: var(--radius-sm);
+}
+.audit-running-bar {
+    border-color: var(--running-bar-border);
+}
+.audit-running-bar.audit-running-failed {
+    border-color: var(--accent-danger-border);
+}
+.rec-card-data {
+    background: var(--primary-soft);
+}
+.rec-card-ads {
+    background: var(--success-soft);
+}
+.audit-tasks-link {
+    color: var(--warning-text);
+}
+.audit-tasks-link:hover {
+    color: var(--warning-strong);
+}
+
+/* —— Guided first run —— */
+.guided-first-run {
+    font-family: var(--font-sans);
+    border-radius: var(--radius-md);
+}
+.guided-first-run.is-step-3 {
+    background: var(--guided-step3-bg);
+}
+.guided-first-run.is-review {
+    border-left-color: var(--guided-review-border);
+    background: var(--guided-review-bg);
+}
+.guided-first-run.is-review .guided-step-badge {
+    color: var(--guided-review-badge-text);
+    background: var(--guided-review-badge-bg);
+}
+.guided-step-badge {
+    font-family: var(--font-sans);
+    background: var(--guided-badge-info-bg);
+}
+.guided-first-run.is-step-1 .guided-step-badge {
+    background: var(--guided-badge-warn-bg);
+}
+.guided-first-run.is-step-2 .guided-step-badge {
+    background: var(--guided-badge-info-bg);
+}
+.guided-first-run.is-step-3 .guided-step-badge,
+.guided-first-run.is-done .guided-step-badge {
+    background: var(--guided-badge-success-bg);
+}
+.guided-title {
+    font-size: var(--text-lg);
+    font-weight: var(--font-bold);
+}
+.guided-hint {
+    font-size: var(--text-sm);
+}
+.analysis-stale-bar {
+    border-color: var(--stale-bar-border);
+    background: var(--stale-bar-bg);
+    border-radius: var(--radius-sm);
+    color: var(--warning-text);
+}
+
+/* —— Workflow hints (вкладки) —— */
+.workflow-hint-card {
+    background: var(--primary-soft);
+    border-radius: var(--radius-sm);
+}
+.workflow-hint-card.workflow-ok {
+    background: var(--success-soft);
+}
+.workflow-hint-card.workflow-caution {
+    background: var(--warning-soft);
+}
+.workflow-phase-badge {
+    font-family: var(--font-sans);
+    border-radius: var(--radius-pill);
+}
+
+/* —— AI-чат —— */
+.tab-chat-layout {
+    font-family: var(--font-sans);
+}
+.chat-tab-lead {
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+}
+.chat-panel {
+    border-radius: var(--radius-md);
+}
+.chat-bubble {
+    border-radius: var(--radius-sm);
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
+}
+.chat-user {
+    border-radius: var(--radius-md) var(--radius-md) var(--radius-xs) var(--radius-md);
+}
+.chat-assistant {
+    border-radius: var(--radius-md) var(--radius-md) var(--radius-md) var(--radius-xs);
+}
+.chat-assistant.chat-bubble--client-mode {
+    border-color: var(--chat-client-border);
+    background: var(--chat-client-bg);
+}
+.chat-why {
+    background: var(--chat-why-bg);
+}
+.chat-role {
+    font-size: var(--text-xs);
+    font-weight: var(--font-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.chat-compose-sticky {
+    background: var(--surface-soft);
+}
+.chat-style-toggle-label {
+    color: var(--text-muted);
+}
+.chat-temp-details summary {
+    color: var(--primary);
+    font-weight: var(--font-semibold);
+}
+.chat-temp-details summary:hover {
+    color: var(--primary-strong);
+}
+.chat-answer-pdf summary {
+    color: var(--chat-pdf-link);
+    font-weight: var(--font-semibold);
+}
+.chat-trust-warn {
+    color: var(--warning-text);
+    background: var(--warning-soft);
+    border-color: var(--accent-warning-border);
+}
+.ai-cost-estimate.is-high,
+.ai-cost-estimate.is-high .ai-cost-estimate__total {
+    border-color: var(--accent-warning-border);
+    background: var(--warning-soft);
+}
+.ai-context-options {
+    border-color: var(--line);
+    background: var(--surface-soft);
+}
+.chat-chip:hover {
+    background: var(--primary-soft);
+    border-color: var(--primary-border);
+    color: var(--primary-strong);
+}
+.chat-finding-ctx {
+    background: var(--surface-soft);
+    border-radius: var(--radius-sm);
+}
+.temperature-panel {
+    border-radius: var(--radius-md);
+}

@@ -1,0 +1,50 @@
+<!-- Модалка редактирования клиента (G1) -->
+<div id="editClientModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>✏️ Редактировать клиента</h3>
+            <button type="button" class="modal-close" onclick="closeModal('editClientModal')">×</button>
+        </div>
+        <div class="modal-body">
+            <form id="editClientForm">
+                <input type="hidden" name="audit_id" id="editClientAuditId">
+                <div class="form-group">
+                    <label>Название клиента *</label>
+                    <input type="text" name="client_name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Регион</label>
+                    <input type="text" name="region" class="form-control" placeholder="Например: Москва, СПб + область">
+                </div>
+                <div class="form-group">
+                    <label>Категория ниши</label>
+                    <select name="niche_category" id="editNicheCategory" class="form-control" onchange="updateNicheSubnicheUi('edit')">
+                        <option value="">— выберите —</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Подниша</label>
+                    <input type="text" name="niche_subcategory" id="editNicheSubcategory" class="form-control" oninput="updateNichePreview('edit')">
+                    <small class="form-hint" id="editNicheSubnicheHint"></small>
+                </div>
+                <p class="niche-preview muted" id="editNichePreview" style="display:none;"></p>
+                <div class="form-group">
+                    <label>Сайт</label>
+                    <input type="url" name="website" class="form-control" placeholder="https://example.ru">
+                </div>
+                <div class="form-group">
+                    <label>Цель аудита</label>
+                    <textarea name="goal" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Комментарий</label>
+                    <textarea name="comment" class="form-control" rows="2"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeModal('editClientModal')">Отмена</button>
+            <button type="button" class="btn btn-primary" onclick="saveEditClient()">Сохранить</button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,12 @@
+{
+  "name": "ppc-audit-frontend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}

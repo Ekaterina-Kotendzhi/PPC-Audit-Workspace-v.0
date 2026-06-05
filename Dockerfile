@@ -7,6 +7,7 @@ COPY frontend/ ./
 RUN node build.mjs
 
 # Stage 2: Python API + Playwright PDF
+# Bookworm: Playwright 1.44 --with-deps стабильнее, чем на trixie.
 FROM python:3.12-slim-bookworm
 
 WORKDIR /app
@@ -21,6 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+# Playwright ~160 MB; при медленной сети увеличен таймаут и один повтор.
 ENV PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT=300000
 RUN python -m playwright install --with-deps chromium \
     || python -m playwright install --with-deps chromium

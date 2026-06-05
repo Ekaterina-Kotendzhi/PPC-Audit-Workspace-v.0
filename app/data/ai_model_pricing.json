@@ -1,0 +1,44 @@
+{
+  "pricing_updated_at": "2026-06-02",
+  "pricing_unit": "per_1m_tokens",
+  "usd_to_rub_rate": 92.0,
+  "note": "Цены за 1 000 000 токенов (как в OpenAI / ProxyAPI). Не путать с ценой за 1K.",
+  "models": {
+    "gpt-4o": {
+      "input_usd_per_1m": "2.50",
+      "output_usd_per_1m": "10.00",
+      "input_rub_per_1m": "230.00",
+      "output_rub_per_1m": "920.00"
+    },
+    "gpt-4o-mini": {
+      "input_usd_per_1m": "0.15",
+      "output_usd_per_1m": "0.60",
+      "input_rub_per_1m": "13.80",
+      "output_rub_per_1m": "55.20"
+    },
+    "claude-sonnet-4-5": {
+      "input_usd_per_1m": "3.00",
+      "output_usd_per_1m": "15.00",
+      "input_rub_per_1m": "276.00",
+      "output_rub_per_1m": "1380.00"
+    },
+    "claude-haiku-4-5": {
+      "input_usd_per_1m": "0.80",
+      "output_usd_per_1m": "4.00",
+      "input_rub_per_1m": "73.60",
+      "output_rub_per_1m": "368.00"
+    },
+    "gemini-1.5-pro": {
+      "input_usd_per_1m": "1.25",
+      "output_usd_per_1m": "5.00",
+      "input_rub_per_1m": "115.00",
+      "output_rub_per_1m": "460.00"
+    },
+    "gemini-1.5-flash": {
+      "input_usd_per_1m": "0.075",
+      "output_usd_per_1m": "0.30",
+      "input_rub_per_1m": "6.90",
+      "output_rub_per_1m": "27.60"
+    }
+  }
+}

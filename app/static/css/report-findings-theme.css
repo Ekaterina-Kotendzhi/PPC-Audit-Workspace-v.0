@@ -1,0 +1,246 @@
+/**
+ * Отчёт + Выводы — приведение к tokens.css (перекрывает разрозненные hex в style.css)
+ */
+
+/* —— Pre-PDF / чеклист отчёта —— */
+.pre-pdf-ok span { color: var(--success); }
+.pre-pdf-fail span { color: var(--warning-text); }
+.chat-trust-warn {
+    color: var(--warning-text);
+    background: var(--warning-soft);
+    border-color: var(--accent-warning-border);
+}
+
+/* —— Вкладка «Отчёт» —— */
+#tab-report table td:first-child {
+    color: var(--table-label);
+    font-weight: var(--font-semibold);
+}
+#tab-report .metrics-kpi-source {
+    background: var(--primary-soft);
+    border-radius: var(--radius-sm);
+}
+#tab-report .metrics-report-explain {
+    border-left-color: var(--primary-border);
+}
+table tr:hover {
+    background: var(--table-row-hover);
+}
+
+.report-send-badge--ready {
+    background: var(--success-soft);
+    color: var(--success-text);
+}
+.report-send-badge--draft {
+    background: var(--warning-soft);
+    color: var(--warning-text);
+}
+.report-executive-hero {
+    border-left-color: var(--brand);
+}
+.report-hero-kicker {
+    color: var(--brand);
+}
+.report-hero-draft {
+    background: var(--warning-soft);
+    border-color: var(--accent-warning-border);
+}
+.report-confirmed-item {
+    border-left-color: var(--confirmed-accent);
+}
+.report-confirmed-screen--ok {
+    color: var(--success-text);
+}
+.report-confirmed-screen--warn {
+    color: var(--warning-text);
+}
+.report-active-period-note {
+    background: var(--surface-soft);
+}
+.health-score-how summary {
+    color: var(--brand);
+}
+.report-illustration-warn,
+.finding-illustration-warn {
+    color: var(--warning-text);
+}
+.report-finding-illustration-head img,
+.finding-illustration-preview img {
+    background: var(--surface);
+}
+
+/* —— Карточки выводов —— */
+.finding-item.medium {
+    border-left-color: var(--priority-medium);
+}
+.finding-item.finding-queue-urgent {
+    border-left-color: var(--queue-urgent);
+}
+.finding-item.finding-queue-act {
+    border-left-color: var(--queue-act);
+}
+.finding-item.finding-queue-later {
+    border-left-color: var(--queue-later);
+}
+.finding-item.finding-queue-report {
+    border-left-color: var(--queue-report);
+}
+.finding-item.finding-needs-review {
+    border-left-color: var(--needs-review-accent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--needs-review-accent) 28%, transparent);
+}
+
+.finding-meta-panel {
+    background: var(--surface-soft);
+    border-radius: var(--radius-sm);
+}
+.finding-meta-panel dt {
+    color: var(--text-secondary);
+}
+.finding-meta-panel dd {
+    color: var(--text-main);
+}
+.recommendations-deferred {
+    background: var(--surface-soft);
+    border-radius: var(--radius-sm);
+}
+.finding-actions-footer {
+    border-top-color: var(--line);
+}
+.badge-limitation {
+    background: var(--line-soft);
+    color: var(--text-secondary);
+    border-color: var(--line-strong);
+}
+.finding-reject-link {
+    color: var(--reject-muted);
+}
+.finding-reject-link:hover {
+    color: var(--reject-hover);
+}
+.finding-inline-action:hover {
+    color: var(--link-action-hover);
+}
+/* tab-has-issues: бейдж .tab-issue-badge в sources-tab-theme.css */
+.reason.warning {
+    color: var(--warning-strong);
+}
+.reason.blocked {
+    color: var(--danger-text);
+}
+
+/* —— Фильтры и workbench (Выводы) —— */
+.findings-marketer-filter-btn {
+    font-family: var(--font-sans);
+    border-radius: var(--radius-pill);
+}
+.findings-marketer-filter-btn:hover {
+    border-color: var(--brand);
+    color: var(--brand);
+    background: var(--primary-soft);
+}
+.findings-marketer-filter-btn.is-active {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: var(--on-primary);
+}
+.findings-workbench-stat--pending {
+    color: var(--brand);
+}
+.findings-workbench-stat--ok {
+    color: var(--success-text);
+}
+.findings-workbench-stat--rejected {
+    color: var(--text-secondary);
+}
+.finding-inline-gap {
+    background: var(--warning-soft);
+    border-left-color: var(--warning);
+}
+.finding-action-link {
+    color: var(--link-action);
+}
+.finding-action-link:hover {
+    color: var(--link-action-hover);
+}
+
+/* —— Очереди / бейджи выводов —— */
+.finding-queue-badge.finding-queue-urgent {
+    background: var(--chip-urgent-bg);
+    color: var(--chip-urgent-text);
+    border-color: var(--chip-urgent-border);
+}
+.finding-queue-badge.finding-queue-act {
+    background: var(--chip-act-bg);
+    color: var(--chip-act-text);
+    border-color: var(--chip-act-border);
+}
+.finding-queue-badge.finding-queue-later {
+    background: var(--chip-later-bg);
+    color: var(--chip-later-text);
+    border-color: var(--chip-later-border, var(--line));
+}
+.finding-queue-badge.finding-queue-needs-data {
+    background: var(--chip-data-bg);
+    color: var(--chip-data-text);
+    border-color: var(--chip-data-border);
+}
+.finding-queue-badge.finding-queue-report {
+    background: var(--chip-report-bg);
+    color: var(--chip-report-text);
+    border-color: var(--chip-report-border);
+}
+
+/* —— Pills чеклиста данных (связано с выводами) —— */
+.data-checklist-pill.blocking {
+    background: var(--danger-soft);
+    color: var(--danger-text);
+}
+.data-checklist-pill.review {
+    background: var(--warning-soft);
+    color: var(--warning-text);
+    border-color: var(--accent-warning-border);
+}
+.data-checklist-row.issue-blocking {
+    background: var(--warning-soft);
+}
+.data-issue-card.issue-blocking {
+    border-left-color: var(--accent-danger-strong);
+    background: var(--danger-soft);
+}
+.data-issue-card.issue-warning {
+    border-left-color: var(--accent-warn-strong);
+    background: var(--warning-soft);
+}
+.data-issue-card.issue-info {
+    background: var(--info-soft);
+}
+
+/* —— Редактирование вывода —— */
+.finding-edit-pdf-preview {
+    background: var(--surface-soft);
+}
+.badge-evidence-none {
+    background: var(--line-soft);
+    color: var(--text-secondary);
+}
+
+/* —— Алерты (отчёт / модалки) —— */
+.alert-warning {
+    border-color: var(--accent-warning-border);
+}
+.alert-danger {
+    border-color: var(--accent-danger-border);
+}
+.alert-success {
+    border-color: color-mix(in srgb, var(--success) 35%, var(--line));
+}
+.alert-info {
+    border-color: var(--accent-info-border);
+}
+.needs-review-block {
+    border-left-color: var(--accent-warning-border);
+}
+.form-error {
+    border-color: var(--accent-danger-border);
+}

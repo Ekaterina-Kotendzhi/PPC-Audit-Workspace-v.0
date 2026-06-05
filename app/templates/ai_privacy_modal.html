@@ -1,0 +1,101 @@
+<!-- Модальное окно: приватность AI-анализа -->
+<div id="aiPrivacyModal" class="modal-overlay">
+    <div class="modal modal-wide">
+        <div class="modal-header">
+            <h3>🔐 Что отправить в AI-анализ</h3>
+            <button class="modal-close" onclick="closeModal('aiPrivacyModal')">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="privacy-panel">
+                <p><strong>Режим:</strong> <span id="aiPrivacyProviderName">—</span></p>
+                <p id="aiPrivacyProviderUrl" class="privacy-muted">—</p>
+            </div>
+
+            <div class="form-group ai-model-panel">
+                <label for="aiModelSelect">Модель AI</label>
+                <select id="aiModelSelect" class="form-control"></select>
+                <p class="privacy-muted">Запрос через <a href="https://proxyapi.ru/docs" target="_blank" rel="noopener">ProxyAPI</a>. Стоимость в UI — оценка в ₽ и USD; фактическое списание — в кабинете ProxyAPI.</p>
+                <div id="aiCostEstimatePanel" class="ai-cost-estimate" aria-live="polite">
+                    <div class="ai-cost-estimate__head">
+                        <span class="ai-cost-estimate__title">Оценка стоимости</span>
+                        <span id="aiCostEstimateModel" class="ai-cost-estimate__model"></span>
+                    </div>
+                    <div id="aiCostEstimateBody" class="ai-cost-estimate__body">
+                        <p class="ai-cost-estimate__placeholder privacy-muted">—</p>
+                    </div>
+                    <p id="aiCostEstimateNote" class="ai-cost-estimate__note privacy-muted"></p>
+                </div>
+            </div>
+
+            <div id="aiExternalConsentBlock" class="privacy-consent-block" style="display:none;">
+                <label class="checkbox-line">
+                    <input type="checkbox" id="aiExternalConsent">
+                    Я понимаю, что обезличенный контекст аудита будет отправлен внешнему AI-провайдеру для анализа.
+                </label>
+            </div>
+
+            <div class="privacy-options">
+                <div class="checkbox-line privacy-locked">✓ Метрики (расход, клики, заявки) будут отправлены — обязательны для анализа</div>
+                <div class="checkbox-line privacy-locked">✓ Категория бизнеса будет отправлена — нужна для контекстных рекомендаций</div>
+                <label class="checkbox-line">
+                    <input type="checkbox" id="aiSendRevenueSales">
+                    Отправить выручку и продажи — нужно для расчёта CPA и ROMI <span class="privacy-recommended">рекомендуется, если есть согласие клиента</span>
+                </label>
+            </div>
+
+            <div class="ai-context-options">
+                <p class="ai-context-options__title"><strong>Что добавить в контекст AI</strong> <span class="privacy-muted">(влияет на токены и стоимость)</span></p>
+                <p class="privacy-muted ai-context-options__lead">Excel Директа не уходит целиком: по умолчанию только выжимка (оценка кабинета, риски, KPI по месяцам). Сырые листы и длинные заметки — только по галочкам.</p>
+                <div class="checkbox-line privacy-locked" id="aiCtxDirectSummaryRow">
+                    <input type="checkbox" id="aiSendDirectSummary" checked disabled>
+                    <span>Выжимка Директ (оценка кабинета, риски Excel, KPI по месяцам)</span>
+                </div>
+                <label class="checkbox-line" id="aiCtxNotesRow">
+                    <input type="checkbox" id="aiSendNotes">
+                    <span>Текстовые заметки маркетолога <span id="aiCtxNotesCount" class="privacy-muted"></span></span>
+                </label>
+                <label class="checkbox-line" id="aiCtxOcrRow">
+                    <input type="checkbox" id="aiSendScreenshotsOcr">
+                    <span>OCR со скриншотов <span id="aiCtxOcrCount" class="privacy-muted"></span></span>
+                </label>
+                <label class="checkbox-line" id="aiCtxSetupRow">
+                    <input type="checkbox" id="aiSendSetupScreenshots">
+                    <span>Скриншоты настроек кабинета (структура, стратегия) <span id="aiCtxSetupCount" class="privacy-muted"></span></span>
+                </label>
+                <label class="checkbox-line" id="aiCtxCampaignsRow">
+                    <input type="checkbox" id="aiSendDirectCampaignDetail">
+                    <span>Детализация кампаний из Excel (таблица по РК)</span>
+                </label>
+                <label class="checkbox-line" id="aiCtxConditionsRow">
+                    <input type="checkbox" id="aiSendDirectConditions">
+                    <span>Условия показа — топ фраз и семантика</span>
+                </label>
+                <label class="checkbox-line" id="aiCtxDocsRow">
+                    <input type="checkbox" id="aiSendOtherDocuments">
+                    <span>Прочие документы (PDF, Word, не-Директ Excel) <span id="aiCtxDocsCount" class="privacy-muted"></span></span>
+                </label>
+            </div>
+
+            <div class="temperature-panel">
+                <label for="aiTemperatureRange"><strong>Режим анализа:</strong> <span id="aiTemperatureValue">Основной аудит</span></label>
+                <input id="aiTemperatureRange" type="range" min="0" max="1" step="0.1" value="0.3">
+                <div class="temperature-scale"><span>Только подтверждённые факты</span><span>Факты + гипотезы</span></div>
+                <p class="privacy-muted">Точный расчёт → Основной аудит → Коммерческое предложение → Гипотезы и идеи.</p>
+            </div>
+
+            <div class="privacy-hidden-list">
+                <div>❌ Название компании — скрыто во внешнем AI-режиме</div>
+                <div>❌ Контакты, имена, телефоны, email — скрыты всегда</div>
+                <div>❌ Прямые ссылки на файлы и локальные пути — скрыты всегда</div>
+            </div>
+
+            <div class="privacy-note">
+                Если выручка и продажи не отправляются, AI получит пометку: «ROMI и CPA не рассчитывать». Так модель не будет выдумывать финансовые показатели.
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" id="aiPrivacyCancel" type="button">Отмена</button>
+            <button class="btn btn-success" id="aiPrivacyStart" type="button">Запустить AI-анализ</button>
+        </div>
+    </div>
+</div>

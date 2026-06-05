@@ -2,7 +2,7 @@
 
 Веб-приложение для **PPC-аудита** рекламных кабинетов Яндекс Директа: загрузка материалов (Excel, заметки, скрины), AI-анализ, ручная проверка выводов маркетологом, клиентский **PDF/HTML-отчёт**.
 
-**Репозиторий:** `https://github.com/Ekaterina-Kotendzhi/PPC-Audit-Workspace-v.0` (после публикации)
+**Репозиторий:** https://github.com/Ekaterina-Kotendzhi/PPC-Audit-Workspace-v.0
 
 **Ценность:** стандартный клиентский PDF **~3,5–5 ч** вручную → **~1,5–2,5 ч** с инструментом (разбор Excel, черновик выводов, контроль качества перед отправкой клиенту).
 
@@ -33,8 +33,8 @@
 
 ```powershell
 cd $env:USERPROFILE\Documents
-git clone https://github.com/Ekaterina-Kotendzhi/PPC-1.git PPC-Audit-Clean
-cd PPC-Audit-Clean
+git clone https://github.com/Ekaterina-Kotendzhi/PPC-Audit-Workspace-v.0.git
+cd PPC-Audit-Workspace-v.0
 docker compose up --build
 ```
 
@@ -53,8 +53,8 @@ docker compose up --build
 
 ```powershell
 cd $env:USERPROFILE\Documents
-git clone https://github.com/Ekaterina-Kotendzhi/PPC-1.git PPC-Audit-Clean
-cd PPC-Audit-Clean
+git clone https://github.com/Ekaterina-Kotendzhi/PPC-Audit-Workspace-v.0.git
+cd PPC-Audit-Workspace-v.0
 powershell -ExecutionPolicy Bypass -File .\scripts\setup-venv.ps1
 copy .env.example .env
 cd frontend && npm install && npm run build && cd ..
@@ -295,9 +295,8 @@ docker compose down
 
 ---
 
-## Стек и лицензия
+## Стек
 
-- **FastAPI**, **SQLAlchemy**, **SQLite**, **Playwright**, **Chroma**
-- Разработка: [github.com/Ekaterina-Kotendzhi/PPC-1](https://github.com/Ekaterina-Kotendzhi/PPC-1)
+**FastAPI**, **SQLAlchemy**, **SQLite**, **Playwright**, **Chroma**
 
-*PPC Audit Workspace — июнь 2026.*
+*PPC Audit Workspace v.0 — июнь 2026.*
