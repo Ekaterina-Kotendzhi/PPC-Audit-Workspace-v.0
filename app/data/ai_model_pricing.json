@@ -16,6 +16,12 @@
       "input_rub_per_1m": "13.80",
       "output_rub_per_1m": "55.20"
     },
+    "claude-opus-4-5": {
+      "input_usd_per_1m": "5.00",
+      "output_usd_per_1m": "25.00",
+      "input_rub_per_1m": "460.00",
+      "output_rub_per_1m": "2300.00"
+    },
     "claude-sonnet-4-5": {
       "input_usd_per_1m": "3.00",
       "output_usd_per_1m": "15.00",

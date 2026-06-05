@@ -58,7 +58,7 @@ cd PPC-Audit-Workspace-v.0
 powershell -ExecutionPolicy Bypass -File .\scripts\setup-venv.ps1
 copy .env.example .env
 cd frontend && npm install && npm run build && cd ..
-.\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --log-level debug --access-log
 ```
 
 Браузер: **http://localhost:8000** — те же шаги 3–6.

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 import time
 from datetime import datetime, timezone
@@ -31,6 +32,7 @@ from app.services.ai_context_options import (
     material_allowed_by_context_options,
     normalize_ai_context_options,
 )
+from app.services.ai_json_parse import extract_json_from_response, parse_ai_response_json
 from app.services.material_helpers import (
     document_slice_from_material,
     is_semantics_export_material,
@@ -285,18 +287,6 @@ def build_user_prompt(project: AuditProject, input_data: Dict[str, Any], feedbac
 
 Верни результат строго в JSON по схеме:
 {JSON_SCHEMA}"""
-
-
-def extract_json_from_response(text: str) -> str:
-    """Извлекает JSON из ответа AI, очищая markdown-обёртки."""
-    json_match = re.search(r"```(?:json)?\s*\n?(.*?)\n?```", text, re.DOTALL)
-    if json_match:
-        return json_match.group(1).strip()
-    brace_start = text.find("{")
-    brace_end = text.rfind("}")
-    if brace_start != -1 and brace_end != -1 and brace_end > brace_start:
-        return text[brace_start: brace_end + 1]
-    return text.strip()
 
 
 def _collect_manual_metrics(materials: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -626,6 +616,103 @@ def mock_ai_response(input_data: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def ensure_ai_analysis_shape(
+    ai_data: dict[str, Any],
+    input_data: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Дополняет неполный JSON от модели обязательными блоками схемы."""
+    had_charts = isinstance(ai_data.get("charts"), list)
+    had_schemes = isinstance(ai_data.get("schemes"), list)
+    had_offer = isinstance(ai_data.get("commercial_offer"), dict)
+
+    if not isinstance(ai_data.get("findings"), list):
+        ai_data["findings"] = []
+    if not had_charts:
+        ai_data["charts"] = []
+    if not had_schemes:
+        ai_data["schemes"] = []
+    if not isinstance(ai_data.get("global_review_reasons"), list):
+        ai_data["global_review_reasons"] = []
+    if "global_needs_review" not in ai_data:
+        ai_data["global_needs_review"] = bool(ai_data["global_review_reasons"])
+
+    if not isinstance(ai_data.get("metrics"), dict):
+        ai_data["metrics"] = {
+            "needs_review": True,
+            "review_reason": "Метрики не возвращены моделью.",
+        }
+
+    summary = ai_data.get("audit_summary")
+    if not isinstance(summary, dict):
+        ai_data["audit_summary"] = {
+            "client_problem": "Требуется уточнение по материалам аудита.",
+            "main_risk": "Часть блоков ответа AI не заполнена.",
+            "priority": "medium",
+            "short_conclusion": "Перепроверьте выводы и дополните материалы при необходимости.",
+        }
+    else:
+        summary.setdefault("priority", "medium")
+
+    if not had_offer:
+        if ai_data.get("is_preliminary"):
+            ai_data["commercial_offer"] = {
+                "proposal_title": "Предварительный план работ",
+                "recommended_services": ["Сбор исходных данных для аудита"],
+                "estimated_work_days": 5,
+                "sales_argument": "После загрузки материалов коммерческий план будет уточнён.",
+                "next_step": "Добавьте материалы и перезапустите AI-анализ.",
+            }
+        else:
+            from app.services.commercial_offer_enrich_service import enrich_commercial_offer
+
+            ai_data["commercial_offer"] = {}
+            enrich_commercial_offer(ai_data, input_data, force_refresh=True)
+            if not isinstance(ai_data.get("commercial_offer"), dict):
+                ai_data["commercial_offer"] = {
+                    "proposal_title": "План оптимизации Яндекс Директа",
+                    "recommended_services": [
+                        "Аудит кампаний и семантики",
+                        "Настройка аналитики и CRM",
+                    ],
+                    "estimated_work_days": 10,
+                    "sales_argument": "Работы сфокусированы на снижении потерь бюджета и росте качества заявок.",
+                    "next_step": "Согласовать первый этап работ и уточнить KPI.",
+                }
+
+    if not had_charts and not ai_data.get("is_preliminary"):
+        metrics = ai_data.get("metrics") or {}
+        funnel: dict[str, Any] = {}
+        if metrics.get("clicks") is not None:
+            funnel["Клики"] = metrics["clicks"]
+        if metrics.get("leads") is not None:
+            funnel["Заявки"] = metrics["leads"]
+        if metrics.get("sales") is not None:
+            funnel["Продажи"] = metrics["sales"]
+        if funnel:
+            ai_data["charts"].append({
+                "type": "funnel",
+                "title": "Воронка рекламы",
+                "description": "Автодобавлено: модель не вернула блок charts.",
+                "data": funnel,
+                "insight": "Проверьте полноту метрик и при необходимости перезапустите анализ.",
+                "needs_review": True,
+                "review_reason": "График сформирован автоматически из метрик.",
+            })
+
+    if not had_charts or not had_schemes or not had_offer:
+        note = (
+            "Модель не вернула часть обязательных блоков JSON "
+            "(charts/schemes/КП) — значения дополнены автоматически."
+        )
+        reasons = list(ai_data.get("global_review_reasons") or [])
+        if note not in reasons:
+            reasons.append(note)
+        ai_data["global_review_reasons"] = reasons
+        ai_data["global_needs_review"] = True
+
+    return ai_data
+
+
 def _normalize_temperature(value: Any | None, default: float) -> float:
     try:
         temperature = float(default if value is None else value)
@@ -691,14 +778,37 @@ def call_ai_api(
         }
         return data
 
+    max_tokens = max(1024, int(settings.AI_ANALYSIS_MAX_TOKENS))
     result = router.call(
         system_prompt=SYSTEM_PROMPT,
         user_prompt=prompt,
         temperature=normalized_temperature,
-        max_tokens=5000,
+        max_tokens=max_tokens,
         model_id=model_id,
     )
-    data = json.loads(extract_json_from_response(result.content))
+    try:
+        data = parse_ai_response_json(result.content)
+    except json.JSONDecodeError as first_err:
+        logging.getLogger(__name__).warning(
+            "AI JSON parse failed (%s), requesting one syntax-fix retry",
+            first_err,
+        )
+        fix_prompt = (
+            "Предыдущий ответ не является валидным JSON. "
+            "Верни ТОЛЬКО исправленный полный JSON-объект по той же схеме анализа. "
+            "Без markdown, без комментариев, без текста до или после JSON.\n\n"
+            f"Битый фрагмент для исправления:\n{result.content[:14000]}"
+        )
+        retry = router.call(
+            system_prompt=SYSTEM_PROMPT,
+            user_prompt=fix_prompt,
+            temperature=min(normalized_temperature, 0.2),
+            max_tokens=max_tokens,
+            model_id=model_id,
+        )
+        data = parse_ai_response_json(retry.content)
+        result = retry
+
     data["_model_metadata"] = _model_metadata_from_result(
         result,
         model_id=model_id,
@@ -1045,6 +1155,7 @@ def run_analysis(project: AuditProject, db: Session, progress_callback: Callable
         from app.services.direct_ai_enrichment_service import apply_direct_ai_enrichment
 
         apply_direct_ai_enrichment(ai_data, input_data.get("direct_risk_catalog") or [])
+        ensure_ai_analysis_shape(ai_data, input_data)
         AIAnalysisResult.model_validate(ai_data)
         progress("save", 85, "Сохранение выводов, графиков и КП")
         save_ai_result(project, ai_data, db)

@@ -35,7 +35,10 @@ class Settings:
     APP_NAME: str = "PPC Audit Workspace MVP"
     APP_VERSION: str = "1.4.5"
     APP_DESCRIPTION: str = "Веб-приложение для подготовки предварительного аудита Яндекс Директа и коммерческого предложения"
-    
+
+    # Логи: DEBUG | INFO | WARNING | ERROR (uvicorn + приложение)
+    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO").strip().upper() or "INFO"
+
     # База данных
     DATABASE_URL: str = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR}/data/app.db")
     
@@ -92,6 +95,7 @@ class Settings:
     AI_TEMPERATURE_IDEAS: float = float(os.getenv("AI_TEMPERATURE_IDEAS", "0.8"))
     AI_TEMPERATURE_MIN: float = float(os.getenv("AI_TEMPERATURE_MIN", "0.0"))
     AI_TEMPERATURE_MAX: float = float(os.getenv("AI_TEMPERATURE_MAX", "1.0"))
+    AI_ANALYSIS_MAX_TOKENS: int = int(os.getenv("AI_ANALYSIS_MAX_TOKENS", "8192"))
 
     # M1: выбор модели и стоимость (ProxyAPI)
     AI_TRANSPORT: str = os.getenv("AI_TRANSPORT", "native")  # native | proxyapi_unified

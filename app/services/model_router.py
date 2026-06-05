@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import json
+import logging
 import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 import requests
+
+logger = logging.getLogger(__name__)
 
 from app.config import settings, is_force_demo_ai
 from app.services.ai_model_service import get_catalog_entry, model_availability, resolve_api_model, provider_api_url, transport_mode
@@ -181,22 +184,70 @@ class AnthropicProvider(BaseProvider):
     def is_configured(self) -> bool:
         return not _is_placeholder(self.api_key)
 
-    def call(self, *, system_prompt: str, user_prompt: str, temperature: float, max_tokens: int, json_mode: bool = True, timeout_seconds: int | None = None) -> ModelCallResult:
-        if not self.is_configured():
-            raise ModelRouterError("Anthropic: API key is not configured")
-        started = time.perf_counter()
-        headers = {
-            "x-api-key": self.api_key,
-            "anthropic-version": settings.ANTHROPIC_VERSION,
-            "content-type": "application/json",
-        }
-        payload = {
-            "model": self.model,
-            "system": system_prompt,
-            "messages": [{"role": "user", "content": user_prompt}],
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-        }
+    def _resolve_openai_compatible_model(self) -> str:
+        """ProxyAPI: Claude через OpenAI-совместимый endpoint с response_format=json_object."""
+        from app.services.ai_model_service import get_catalog_entry
+
+        for entry_id in ("claude-opus-4-5", "claude-sonnet-4-5", "claude-haiku-4-5"):
+            entry = get_catalog_entry(entry_id)
+            if not entry:
+                continue
+            if str(entry.get("proxyapi_model_a") or "") == self.model:
+                return str(entry.get("proxyapi_model_b") or entry.get("proxyapi_model_a") or self.model)
+        if self.model.startswith("claude-"):
+            return f"anthropic/{self.model}"
+        return f"anthropic/{self.model}"
+
+    def _openai_compatible_json_call(
+        self,
+        *,
+        system_prompt: str,
+        user_prompt: str,
+        temperature: float,
+        max_tokens: int,
+        timeout_seconds: int | None,
+        started: float,
+    ) -> ModelCallResult | None:
+        """ProxyAPI не принимает native structured output (HTTP 400) — JSON через OpenAI API."""
+        openai_key = settings.OPENAI_API_KEY or settings.AI_API_KEY
+        if _is_placeholder(openai_key):
+            return None
+        # Старый openai/v1/chat/completions не принимает anthropic/* («Model not supported»).
+        # Рабочий путь для Claude + response_format=json_object — unified endpoint ProxyAPI.
+        api_url = settings.PROXYAPI_UNIFIED_API_URL or settings.OPENAI_API_URL or settings.AI_API_URL
+        if "proxyapi.ru" not in (api_url or "").lower():
+            return None
+        model_name = self._resolve_openai_compatible_model()
+        try:
+            result = OpenAIProvider(
+                api_key=openai_key,
+                api_url=api_url,
+                model=model_name,
+                display_name="Claude via ProxyAPI OpenAI",
+            ).call(
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                json_mode=True,
+                timeout_seconds=timeout_seconds,
+            )
+            result.provider_used = self.name
+            result.model_used = self.model
+            result.duration_ms = int((time.perf_counter() - started) * 1000)
+            return result
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Claude OpenAI-compatible JSON call failed: %s", exc)
+            return None
+
+    def _messages_request(
+        self,
+        *,
+        headers: dict[str, str],
+        payload: dict[str, Any],
+        timeout_seconds: int | None,
+        started: float,
+    ) -> ModelCallResult:
         response = _post_with_retry(
             f"{self.api_url}/v1/messages",
             headers=headers,
@@ -222,7 +273,73 @@ class AnthropicProvider(BaseProvider):
             fallback_used=False,
             fallback_reason=None,
             duration_ms=int((time.perf_counter() - started) * 1000),
-            raw_response={"id": data.get("id"), "usage": data.get("usage")},
+            raw_response={
+                "id": data.get("id"),
+                "usage": data.get("usage"),
+                "stop_reason": data.get("stop_reason"),
+            },
+        )
+
+    def call(self, *, system_prompt: str, user_prompt: str, temperature: float, max_tokens: int, json_mode: bool = True, timeout_seconds: int | None = None) -> ModelCallResult:
+        if not self.is_configured():
+            raise ModelRouterError("Anthropic: API key is not configured")
+        started = time.perf_counter()
+        headers = {
+            "x-api-key": self.api_key,
+            "anthropic-version": settings.ANTHROPIC_VERSION,
+            "content-type": "application/json",
+        }
+        payload: dict[str, Any] = {
+            "model": self.model,
+            "system": system_prompt,
+            "messages": [{"role": "user", "content": user_prompt}],
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+        use_structured = json_mode and getattr(settings, "AI_FORCE_JSON_RESPONSE_FORMAT", True)
+        if use_structured:
+            via_openai = self._openai_compatible_json_call(
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                timeout_seconds=timeout_seconds,
+                started=started,
+            )
+            if via_openai is not None:
+                return via_openai
+            structured_headers = {
+                **headers,
+                "anthropic-beta": "structured-outputs-2025-11-13",
+            }
+            structured_payload = {
+                **payload,
+                "output_format": {
+                    "type": "json_schema",
+                    "schema": {"type": "object", "additionalProperties": True},
+                },
+            }
+            try:
+                return self._messages_request(
+                    headers=structured_headers,
+                    payload=structured_payload,
+                    timeout_seconds=timeout_seconds,
+                    started=started,
+                )
+            except requests.HTTPError as exc:
+                status = exc.response.status_code if exc.response is not None else None
+                logger.warning(
+                    "Anthropic structured JSON unavailable (HTTP %s), falling back to plain mode",
+                    status,
+                )
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("Anthropic structured JSON failed (%s), falling back to plain mode", exc)
+
+        return self._messages_request(
+            headers=headers,
+            payload=payload,
+            timeout_seconds=timeout_seconds,
+            started=started,
         )
 
 

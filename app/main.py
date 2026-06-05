@@ -14,6 +14,19 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import ValidationError
 from app.config import settings
 from app.database import init_db, SessionLocal
+
+
+def configure_logging() -> None:
+    """LOG_LEVEL из .env — логи приложения и uvicorn в консоль."""
+    level_name = settings.LOG_LEVEL
+    level = getattr(logging, level_name, logging.INFO)
+    fmt = "%(asctime)s %(levelname)s [%(name)s] %(message)s"
+    logging.basicConfig(level=level, format=fmt, datefmt="%H:%M:%S", force=True)
+    for name in ("ppc_audit", "app", "uvicorn", "uvicorn.access", "uvicorn.error"):
+        logging.getLogger(name).setLevel(level)
+
+
+configure_logging()
 from app.routers import audits, materials, runs, progress, templates as templates_router, comparison, slides, privacy, findings, knowledge_base, chat, telemetry, ai_models
 from app.services.chat_telemetry_service import chat_telemetry, aggregate_chat_telemetry_db, as_prometheus_text
 from app.services.ops_telemetry_service import ops_telemetry
@@ -31,8 +44,9 @@ async def lifespan(_app: FastAPI):
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
     build = static_build_token()
     logger.info(
-        "PPC Audit started | UI %s | python=%s | cwd=%s",
+        "PPC Audit started | UI %s | log=%s | python=%s | cwd=%s",
         build,
+        settings.LOG_LEVEL,
         sys.executable,
         os.getcwd(),
     )

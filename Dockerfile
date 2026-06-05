@@ -18,6 +18,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     fonts-liberation \
     fonts-dejavu-core \
+    tesseract-ocr \
+    tesseract-ocr-rus \
+    tesseract-ocr-eng \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
@@ -31,7 +34,8 @@ COPY . .
 COPY --from=frontend /build/app/static/js/app.js /app/app/static/js/app.js
 
 RUN mkdir -p /app/data /app/app/uploads /app/app/exports
+RUN chmod +x /app/scripts/docker-entrypoint.sh
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["/app/scripts/docker-entrypoint.sh"]

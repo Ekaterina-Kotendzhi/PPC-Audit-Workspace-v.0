@@ -1,7 +1,9 @@
-"""User-controlled slices of audit context sent to external AI (cost control)."""
+"""Slices of audit context sent to external AI — derived from materials marked «В AI»."""
 from __future__ import annotations
 
 from typing import Any
+
+from app.models import AuditProject
 
 # Direct summary = health score, risk catalog, monthly KPI — not raw Excel sheets.
 AI_CONTEXT_OPTION_KEYS = (
@@ -19,7 +21,7 @@ OTHER_DOCUMENT_MATERIAL_TYPES = frozenset({"document", "table"})
 
 
 def material_allowed_by_context_options(mtype: str, opts: dict[str, bool]) -> bool:
-    """Gate materials list in AI prompt by modal checkboxes (M2 context flags)."""
+    """Gate materials list in AI prompt by derived context flags (from «В AI» on Sources)."""
     normalized = (mtype or "").strip()
     if normalized in NOTE_LIKE_MATERIAL_TYPES:
         return bool(opts.get("send_notes"))

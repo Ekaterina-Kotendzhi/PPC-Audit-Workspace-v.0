@@ -17,6 +17,14 @@
       "pricing_id": "gpt-4o-mini"
     },
     {
+      "id": "claude-opus-4-5",
+      "label": "Claude Opus 4.5",
+      "provider": "anthropic",
+      "proxyapi_model_a": "claude-opus-4-5",
+      "proxyapi_model_b": "anthropic/claude-opus-4-5",
+      "pricing_id": "claude-opus-4-5"
+    },
+    {
       "id": "claude-sonnet-4-5",
       "label": "Claude Sonnet 4.5",
       "provider": "anthropic",
