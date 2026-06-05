@@ -6,6 +6,16 @@
 
 **Ценность:** стандартный клиентский PDF **~3,5–5 ч** вручную → **~1,5–2,5 ч** с инструментом (разбор Excel, черновик выводов, контроль качества перед отправкой клиенту).
 
+### Документы для сдачи
+
+| Файл | Назначение |
+|------|------------|
+| [ЧЕКЛИСТ-СДАЧИ.md](ЧЕКЛИСТ-СДАЧИ.md) | Что готово и что приложить |
+| [ОТЧЕТ-ПО-ШАБЛОНУ.md](ОТЧЕТ-ПО-ШАБЛОНУ.md) | Краткий отчёт по проекту |
+| [ЗАЩИТА-5-7-МИН.md](ЗАЩИТА-5-7-МИН.md) | Текст выступления |
+| [ПРОВЕРКА-ЧИСТАЯ-МАШИНА.md](ПРОВЕРКА-ЧИСТАЯ-МАШИНА.md) | Воспроизводимость clone → PDF |
+| [ССЫЛКИ-ВИДЕО.md](ССЫЛКИ-ВИДЕО.md) | Ссылки на видео (вставить после записи) |
+
 ---
 
 ## Содержание
@@ -13,13 +23,14 @@
 1. [Быстрый старт за 10 минут](#быстрый-старт-за-10-минут)
 2. [Требования](#требования)
 3. [Переменные окружения](#переменные-окружения)
-4. [Архитектура](#архитектура)
-5. [Сценарий работы](#сценарий-работы)
-6. [API — ключевые точки](#api--ключевые-точки)
-7. [Примеры запросов](#примеры-запросов)
-8. [Тестовые входы](#тестовые-входы)
-9. [Docker](#docker)
-10. [Частые проблемы](#частые-проблемы)
+4. [AI и модели](#ai-и-модели)
+5. [Архитектура](#архитектура)
+6. [Сценарий работы](#сценарий-работы)
+7. [API — ключевые точки](#api--ключевые-точки)
+8. [Примеры запросов](#примеры-запросов)
+9. [Тестовые входы](#тестовые-входы)
+10. [Docker](#docker)
+11. [Частые проблемы](#частые-проблемы)
 
 ---
 
@@ -42,12 +53,14 @@ docker compose up --build
 
 1. Дождитесь `Application startup complete` (первый build: 5–15 мин).
 2. Откройте **http://localhost:8000**
-3. **+ Новый аудит** → **Директ** → загрузите Excel Мастер-отчёта.
-4. **Запуск AI** → согласие в модалке → дождитесь завершения.
-5. **Выводы** → подтвердите 1–2 карточки.
-6. **Отчёт** → **Предпросмотр PDF**.
+3. **+ Новый аудит** → **Данные → Директ** → загрузите Excel Мастер-отчёта.
+4. (Опционально) **Источники** → галочка **«Будет в AI»** на скринах/заметках.
+5. **Запуск AI** → модалка: согласие → дождитесь 100%.
+6. **Выводы** → подтвердите 1–2 карточки.
+7. **Отчёт** → **Предпросмотр PDF**.
 
-Остановка: `Ctrl+C` или `docker compose down`.
+Остановка: `Ctrl+C` или `docker compose down`.  
+Логи: `docker logs -f ppc_audit_workspace`
 
 ### Вариант B — Python локально (Windows)
 
@@ -61,7 +74,7 @@ cd frontend && npm install && npm run build && cd ..
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --log-level debug --access-log
 ```
 
-Браузер: **http://localhost:8000** — те же шаги 3–6.
+Браузер: **http://localhost:8000** — те же шаги 3–7.
 
 ### Автотесты (опционально)
 
@@ -81,16 +94,16 @@ docker compose run --rm app python -m pytest tests/ -q
 | Node.js | 18+ (сборка frontend) |
 | Docker Desktop | опционально, воспроизводимый запуск |
 | Браузер | Chrome / Edge |
-| Tesseract OCR | опционально, текст со скринов (Windows) |
+| Tesseract OCR | опционально локально; **в Docker-образе уже установлен** |
 
-Файлы конфигурации в репозитории:
+Файлы конфигурации:
 
 | Файл | Назначение |
 |------|------------|
 | `.env.example` | шаблон переменных (ключи пустые) |
-| `.env.docker` | демо-режим для Docker (`PPC_FORCE_DEMO_AI=true`) |
+| `.env.docker` | **демо для Docker** (`PPC_FORCE_DEMO_AI=true`, без ключей) |
 
-**Не коммитить** локальный `.env` с реальными ключами API.
+**Не коммитить** локальный `.env` / `.env.docker` с реальными ключами API.
 
 ---
 
@@ -100,20 +113,39 @@ docker compose run --rm app python -m pytest tests/ -q
 
 | Переменная | По умолчанию | Назначение |
 |------------|--------------|------------|
-| `DATABASE_URL` | `sqlite:///data/app.db` | SQLite (или PostgreSQL) |
+| `DATABASE_URL` | `sqlite:///data/app.db` | SQLite |
+| `LOG_LEVEL` | `INFO` | Логи приложения и uvicorn (`DEBUG` для отладки) |
 | `PPC_FORCE_DEMO_AI` | `false` / `true` в `.env.docker` | Демо без внешнего API |
 | `ANTHROPIC_API_KEY` | пусто | Ключ ProxyAPI / Anthropic |
-| `OPENAI_API_KEY` | пусто | Ключ OpenAI fallback |
+| `OPENAI_API_KEY` | пусто | Ключ OpenAI fallback / embeddings |
+| `AI_ANALYSIS_MAX_TOKENS` | `8192` | Лимит токенов ответа анализа |
+| `AI_TRANSPORT` | `native` | `native` или `proxyapi_unified` |
 | `AI_TEMPERATURE_ANALYSIS` | `0.3` | Температура основного анализа |
-| `AI_TEMPERATURE_CP` | `0.7` | Температура КП |
 | `REQUIRE_AI_CONSENT` | `true` | Согласие в модалке перед AI |
-| `AI_DEFAULT_EXCLUDE_REVENUE` | `true` | Маскировать выручку в промпте |
 | `KNOWLEDGE_BASE_ENABLED` | `true` | Chroma KB подтверждённых выводов |
 | `OCR_PROVIDER` | `tesseract_cli` / `disabled` | OCR скринов |
 
-**Демо-режим:** оставьте API-ключи пустыми или задайте `PPC_FORCE_DEMO_AI=true` — анализ идёт локально, без отправки данных наружу.
+**Демо-режим:** пустые ключи или `PPC_FORCE_DEMO_AI=true` — анализ локально, без отправки данных наружу.
 
-**Внешний AI:** заполните `ANTHROPIC_API_KEY` и/или `OPENAI_API_KEY`, `PPC_FORCE_DEMO_AI=false`.
+**Внешний AI (Claude):** ключ ProxyAPI в `ANTHROPIC_API_KEY`, `PPC_FORCE_DEMO_AI=false`, выбор модели в UI.
+
+---
+
+## AI и модели
+
+Селектор в модалке «Запустить AI-анализ» (`GET /api/ai/models`):
+
+| ID | Название | Провайдер |
+|----|----------|-----------|
+| `gpt-4o` | GPT-4o | OpenAI |
+| `gpt-4o-mini` | GPT-4o mini | OpenAI |
+| `claude-opus-4-5` | Claude Opus 4.5 | Anthropic |
+| `claude-sonnet-4-5` | Claude Sonnet 4.5 | Anthropic |
+| `claude-haiku-4-5` | Claude Haiku 4.5 | Anthropic |
+
+Перед запуском показывается **оценка стоимости** в ₽ и USD.
+
+**Надёжность ответа:** парсинг JSON, повтор при синтаксической ошибке, автодополнение неполных блоков (графики, схемы, КП), quality guard для выводов без доказательств.
 
 ---
 
@@ -123,10 +155,12 @@ docker compose run --rm app python -m pytest tests/ -q
 flowchart LR
     UI[Веб-панель] --> API[FastAPI REST]
     API --> DB[(SQLite audit_runs)]
-    API --> LLM[Model Router / Demo]
-    API --> QC[Quality guard needs_review]
+    API --> MR[Model Router]
+    MR --> Claude[Claude ProxyAPI]
+    MR --> Demo[Демо-режим]
+    API --> QC[Quality guard]
     API --> PDF[PDF HTML export]
-    LLM --> QC
+    MR --> QC
     QC --> DB
 ```
 
@@ -134,13 +168,14 @@ flowchart LR
 |------|------------|
 | Backend | FastAPI, SQLAlchemy, SQLite |
 | Frontend | ES-модули → esbuild → `app.js` |
-| AI | Claude/OpenAI через ProxyAPI или demo |
+| AI | Model Router: Claude / GPT через ProxyAPI или demo |
+| OCR | Tesseract rus+eng (в Docker-образе) |
 | PDF | Playwright Chromium |
 | KB | Chroma (подтверждённые выводы) |
 
 **Три роли API:**
 
-1. **Создать** — `POST /api/audits/`, материалы, `POST .../analyze`
+1. **Создать** — `POST /api/audits/`, материалы, `POST .../analyze/start`
 2. **Витрина** — `GET /api/audits/`
 3. **ИИ + JSON** — analyze → `audit_runs.output_json`
 
@@ -152,9 +187,9 @@ flowchart LR
 |-----|----------|
 | 1 | Создать аудит, указать нишу и цель |
 | 2 | Загрузить Мастер-отчёт Excel на **Директ** |
-| 3 | При необходимости — материалы на **Источники**, галочка **«В AI»** |
-| 4 | **Запуск AI** (модалка: контекст, согласие) |
-| 5 | **Выводы** — confirm / edit / reject каждой карточки |
+| 3 | На **Источники** — отметить материалы **«В AI»** |
+| 4 | **Запуск AI** (модалка: модель, контекст, согласие) |
+| 5 | **Выводы** — confirm / edit / reject |
 | 6 | **Отчёт** — enrich summary/КП, preview PDF |
 | 7 | Экспорт PDF клиенту |
 
@@ -167,15 +202,17 @@ flowchart LR
 | Метод | Путь | Роль |
 |-------|------|------|
 | POST | `/api/audits/` | Создать аудит |
-| GET | `/api/audits/` | Список (витрина) |
+| GET | `/api/audits/` | Список |
 | GET | `/api/audits/{id}` | Карточка аудита |
-| POST | `/api/audits/{id}/analyze` | AI-анализ → JSON |
+| POST | `/api/audits/{id}/analyze/start` | AI-анализ (WebSocket прогресс) |
+| POST | `/api/audits/{id}/analyze/estimate` | Оценка стоимости |
+| GET | `/api/ai/models` | Каталог моделей |
 | GET | `/api/audit-runs/{audit_id}` | Журнал input/output |
 | POST | `/api/audits/{id}/findings/{fid}/confirm` | Подтвердить вывод |
 | GET | `/api/audits/{id}/export/pdf` | PDF для клиента |
 | GET | `/api/privacy/settings` | Настройки маскирования PII |
 
-Интерактивная документация после запуска: **http://localhost:8000/docs**
+Интерактивная документация: **http://localhost:8000/docs**
 
 ---
 
@@ -198,31 +235,16 @@ Invoke-RestMethod -Method Post `
   -Body $body
 ```
 
-```bash
-curl -X POST "http://localhost:8000/api/audits/" \
-  -H "Content-Type: application/json" \
-  -d '{"client_name":"Demo Client","niche":"Клининг","goal":"Снизить CPL"}'
-```
-
 ### 2) Список аудитов
 
 ```powershell
 Invoke-RestMethod -Method Get -Uri "http://localhost:8000/api/audits/"
 ```
 
-```bash
-curl "http://localhost:8000/api/audits/"
-```
-
-### 3) Запуск AI-анализа
+### 3) Каталог моделей AI
 
 ```powershell
-$auditId = 1
-Invoke-RestMethod -Method Post -Uri "http://localhost:8000/api/audits/$auditId/analyze"
-```
-
-```bash
-curl -X POST "http://localhost:8000/api/audits/1/analyze"
+Invoke-RestMethod -Method Get -Uri "http://localhost:8000/api/ai/models"
 ```
 
 ### 4) Журнал запусков
@@ -231,18 +253,10 @@ curl -X POST "http://localhost:8000/api/audits/1/analyze"
 Invoke-RestMethod -Method Get -Uri "http://localhost:8000/api/audit-runs/1"
 ```
 
-```bash
-curl "http://localhost:8000/api/audit-runs/1"
-```
-
 ### 5) Экспорт PDF
 
 ```powershell
 Invoke-WebRequest -Uri "http://localhost:8000/api/audits/1/export/pdf" -OutFile ".\report.pdf"
-```
-
-```bash
-curl -L "http://localhost:8000/api/audits/1/export/pdf" -o report.pdf
 ```
 
 > `needs_review` в ответе AI — ожидаемое поведение quality guard. Подтверждение — на вкладке **«Выводы»**.
@@ -251,34 +265,30 @@ curl -L "http://localhost:8000/api/audits/1/export/pdf" -o report.pdf
 
 ## Тестовые входы
 
-Файл [`tests_data/inputs.jsonl`](tests_data/inputs.jsonl) — **10 сценариев** для проверки (ниша, цель, ожидаемый фокус аудита).
-
-Формат — JSON Lines, одна строка = один кейс:
+Файл [`tests_data/inputs.jsonl`](tests_data/inputs.jsonl) — **10 сценариев** (ниша, цель, ожидаемый фокус).
 
 ```json
 {"id":"case-01","title":"Клининг в Москве","input":{"client_name":"CleanHouse","niche":"Клининг","region":"Москва","goal":"Снизить CPL"},"expected_focus":"Проверка семантики..."}
 ```
 
-Использование: подставьте `client_name`, `niche`, `goal` в `POST /api/audits/` при ручной или автоматической проверке.
-
 ---
 
 ## Docker
 
-В репозитории:
-
 | Файл | Назначение |
 |------|------------|
-| `Dockerfile` | multi-stage: Node (frontend) + Python 3.12 + Playwright |
+| `Dockerfile` | multi-stage: Node + Python 3.12 + Playwright + Tesseract |
 | `docker-compose.yml` | сервис `app`, порт 8000, volumes `data/`, `uploads/`, `exports/` |
-| `.env.docker` | демо без ключей, OCR отключён в контейнере |
+| `.env.docker` | демо без ключей |
+| `scripts/docker-entrypoint.sh` | uvicorn с `LOG_LEVEL` |
 
 ```powershell
 docker compose up --build
 docker compose down
+docker logs -f ppc_audit_workspace
 ```
 
-Первый build скачивает Chromium (~160 MB) — нужен интернет. При timeout повторите `docker compose build`.
+Первый build скачивает Chromium (~160 MB) — нужен интернет.
 
 ---
 
@@ -286,17 +296,21 @@ docker compose down
 
 | Симптом | Решение |
 |---------|---------|
-| `Permission denied` при `git clone` | Не в `System32`. `cd $env:USERPROFILE\Documents` |
+| `Permission denied` при `git clone` | `cd $env:USERPROFILE\Documents` |
 | `no configuration file provided` | `cd` в папку с `docker-compose.yml` |
-| Порт 8000 занят | `docker compose down` или другой порт |
-| Build падает на Playwright | Стабильный интернет, повторить build |
-| PDF пустой | Подтвердить выводы на «Выводы», refresh summary на «Отчёт» |
-| `database is locked` | Один процесс сервера, перезапуск |
+| Порт 8000 занят | `docker compose down` |
+| Build падает на Playwright | Повторить `docker compose build` |
+| AI failed (демо) | `PPC_FORCE_DEMO_AI=true`, ключи пустые |
+| AI failed (Claude) | Ключ ProxyAPI; commit ≥ `3551632`; см. логи |
+| `Validation error` charts/schemes | Обновить репозиторий (автодополнение схемы) |
+| PDF пустой | Подтвердить выводы на «Выводы» |
+| Tesseract не найден (Docker) | Образ уже содержит Tesseract; `OCR_PROVIDER=tesseract_cli` |
+| `database is locked` | Один процесс сервера |
 
 ---
 
 ## Стек
 
-**FastAPI**, **SQLAlchemy**, **SQLite**, **Playwright**, **Chroma**
+**FastAPI**, **SQLAlchemy**, **SQLite**, **Playwright**, **Chroma**, **Tesseract**, **ProxyAPI** (Claude/GPT)
 
 *PPC Audit Workspace v.0 — июнь 2026.*
